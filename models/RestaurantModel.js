@@ -23,5 +23,5 @@ const Restaurant = db.define(
 export default Restaurant;
 
 (async () => {
-  await db.sync();
+  await db.sync({ force: true });
 })();

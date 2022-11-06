@@ -4,9 +4,10 @@ import db from "../config/Database.js";
 const { DataTypes } = Sequelize;
 
 const StationCategory = db.define(
-  "stationCategory",
+  "station_category",
   {
-    name: DataTypes.STRING,
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING },
   },
   {
     freezeTableName: true,
@@ -16,5 +17,5 @@ const StationCategory = db.define(
 export default StationCategory;
 
 (async () => {
-  await db.sync();
+  await db.sync({ force: true });
 })();
