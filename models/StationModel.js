@@ -26,5 +26,5 @@ const Station = db.define(
 export default Station;
 
 (async () => {
-  await db.sync();
+  await db.sync({ force: true });
 })();
