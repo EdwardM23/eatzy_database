@@ -19,5 +19,5 @@ const StationCategory = db.define(
 export default StationCategory;
 
 (async () => {
-  await db.sync();
+  await db.sync({ alter: true });
 })();
