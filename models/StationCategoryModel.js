@@ -8,6 +8,8 @@ const StationCategory = db.define(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING },
+    image: { type: DataTypes.STRING },
+    url: { type: DataTypes.STRING },
   },
   {
     freezeTableName: true,
@@ -17,5 +19,5 @@ const StationCategory = db.define(
 export default StationCategory;
 
 (async () => {
-  await db.sync({ force: true });
+  await db.sync();
 })();
