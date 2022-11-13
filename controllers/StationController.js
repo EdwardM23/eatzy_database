@@ -3,7 +3,9 @@ import Station from "../models/StationModel.js";
 
 export const getStations = async (req, res) => {
   try {
-    const response = await Station.findAll();
+    const response = await Station.findAll({
+      include: [{ model: StationCategory }],
+    });
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
@@ -31,7 +33,7 @@ export const addStation = async (req, res) => {
     await Station.create({
       name: req.body.name,
       location: point,
-      category_id: req.body.category_id,
+      station_category_id: req.body.station_category_id,
     });
     res.status(201).json({ msg: "New Station has created" });
   } catch (error) {
