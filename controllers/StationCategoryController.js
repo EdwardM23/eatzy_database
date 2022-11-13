@@ -25,7 +25,7 @@ export const addStationCategory = async (req, res) => {
   const fileSize = file.size;
   const ext = path.extname(fileName);
   const allowedType = [".png", ".jpg", ".jpeg"];
-  const imagePath = "";
+  var imagePath = "";
 
   if (!allowedType.includes(ext.toLowerCase()))
     return res.status(422).json({ msg: "Invalid Images" });
@@ -34,8 +34,8 @@ export const addStationCategory = async (req, res) => {
 
   try {
     var locaFilePath = file.tempFilePath;
-    var result = await uploadToCloudinary(locaFilePath);
-    imagePath = buildSuccessMsg([result.url]);
+    var result = await uploadToCloudinary(locaFilePath, "station-category");
+    imagePath = result.url;
     console.log(result);
   } catch (error) {
     res.status(400).json(error.message);
@@ -44,8 +44,7 @@ export const addStationCategory = async (req, res) => {
   try {
     await StationCategory.create({
       name: req.body.name,
-      image: fileName,
-      url: url,
+      image: imagePath,
     });
     res.status(201).json({ msg: "New Station Category has created" });
   } catch (error) {
