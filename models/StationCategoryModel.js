@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
+import Station from "./StationModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -16,8 +17,13 @@ const StationCategory = db.define(
   }
 );
 
-export default StationCategory;
+StationCategory.hasMany(Station, {
+  foreignKey: "station_category_id",
+});
+Station.belongsTo(StationCategory, { foreignKey: "station_category_id" });
 
-(async () => {
-  await db.sync({ alter: true });
-})();
+// (async () => {
+//   await db.sync();
+// })();
+
+export default StationCategory;

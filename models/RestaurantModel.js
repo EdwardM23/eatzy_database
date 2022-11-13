@@ -4,11 +4,10 @@ import db from "../config/Database.js";
 const { DataTypes } = Sequelize;
 
 const Restaurant = db.define(
-  "restaurants",
+  "restaurant",
   {
     name: DataTypes.STRING,
-    latitude: DataTypes.FLOAT,
-    longitude: DataTypes.FLOAT,
+    location: DataTypes.GEOMETRY("POINT"),
     address: DataTypes.TEXT,
     openTime: DataTypes.TIME,
     closeTime: DataTypes.TIME,
@@ -20,8 +19,8 @@ const Restaurant = db.define(
   }
 );
 
-export default Restaurant;
+// (async () => {
+//   await db.sync();
+// })();
 
-(async () => {
-  await db.sync({ force: true });
-})();
+export default Restaurant;

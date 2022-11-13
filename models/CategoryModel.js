@@ -3,23 +3,19 @@ import db from "../config/Database.js";
 
 const { DataTypes } = Sequelize;
 
-const User = db.define(
-  "user",
+const Category = db.define(
+  "category",
   {
     id: {
       autoIncrement: true,
       primaryKey: true,
       type: DataTypes.INTEGER,
     },
-    password: {
+    name: {
       type: DataTypes.STRING,
     },
-    username: {
-      type: DataTypes.STRING,
-      unique: true,
-    },
-    email: {
-      type: DataTypes.STRING,
+    isFood: {
+      type: DataTypes.BOOLEAN,
     },
   },
   {
@@ -27,8 +23,8 @@ const User = db.define(
   }
 );
 
-// (async () => {
-//   await db.sync();
-// })();
+export default Category;
 
-export default User;
+(async () => {
+  await db.sync();
+})();

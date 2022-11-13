@@ -9,22 +9,17 @@ const Station = db.define(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: DataTypes.STRING,
-    location: DataTypes.GEOMETRY("POINT"),
-    category_id: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: StationCategory,
-        key: "id",
-      },
-    },
+    location: { type: DataTypes.GEOMETRY("POINT"), allowNull: false },
   },
   {
     freezeTableName: true,
   }
 );
 
-export default Station;
+// Station.belongsTo(StationCategory, { foreignKey: "station_category_id" });
 
-(async () => {
-  await db.sync({ force: true });
-})();
+// async () => {
+//   await db.sync();
+// };
+
+export default Station;
