@@ -1,7 +1,7 @@
 {
   "name": "eatzy_database",
   "version": "1.0.0",
-  "description": "",
+  "description": "restaurant searching system",
   "type": "module",
   "main": "index.js",
   "engines": {
