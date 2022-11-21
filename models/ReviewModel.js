@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 import database from "../config/Database.js";
 import db from "../config/Database.js";
+import User from "./UserModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -13,13 +14,16 @@ const Review = db.define(
       type: DataTypes.INTEGER,
     },
     rating: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.FLOAT,
     },
     review: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(100),
     },
     isAnonymous: {
       type: DataTypes.BOOLEAN,
+    },
+    imageURL: {
+      type: DataTypes.TEXT,
     },
   },
   {
@@ -28,7 +32,3 @@ const Review = db.define(
 );
 
 export default Review;
-
-(async () => {
-  await db.sync();
-})();

@@ -1,5 +1,7 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
+import CategoryDetail from "./CategoryDetailModel.js";
+import Restaurant from "./RestaurantModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -24,7 +26,3 @@ const Category = db.define(
 );
 
 export default Category;
-
-(async () => {
-  await db.sync();
-})();

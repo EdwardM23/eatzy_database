@@ -1,5 +1,8 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
+import Restaurant from "./RestaurantModel.js";
+import Review from "./ReviewModel.js";
+import Wishlist from "./WishlistModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -11,13 +14,13 @@ const User = db.define(
       primaryKey: true,
       type: DataTypes.INTEGER,
     },
-    password: {
-      type: DataTypes.STRING,
-    },
     username: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(20),
     },
     email: {
+      type: DataTypes.STRING(30),
+    },
+    password: {
       type: DataTypes.STRING,
     },
   },
@@ -26,8 +29,17 @@ const User = db.define(
   }
 );
 
-// (async () => {
-//   await db.sync();
-// })();
+User.belongsToMany(Restaurant, {
+  through: Wishlist,
+  // uniqueKey: "user_id",
+});
+
+Restaurant.belongsToMany(User, {
+  through: Wishlist,
+  // uniqueKey: "restaurant_id",
+});
+
+Review.belongsTo(User, { foreignKey: "user_id" });
+User.hasMany(Review, { foreignKey: "user_id" });
 
 export default User;
