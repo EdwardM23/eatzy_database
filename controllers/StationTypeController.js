@@ -1,17 +1,17 @@
-import StationCategory from "../models/StationCategoryModel.js";
+import StationType from "../models/StationTypeModel.js";
 import path from "path";
 import { uploadToCloudinary } from "../Cloudinary.js";
 
-export const getStationCategories = async (req, res) => {
+export const getStationTypes = async (req, res) => {
   try {
-    const response = await StationCategory.findAll();
+    const response = await StationType.findAll();
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
   }
 };
 
-export const addStationCategory = async (req, res) => {
+export const addStationType = async (req, res) => {
   if (!req.body.name)
     return res.status(400).json({
       msg: "Station Category name cannot be null.",
@@ -21,6 +21,7 @@ export const addStationCategory = async (req, res) => {
     return res.status(400).json({ msg: "No File Uploaded" });
 
   const file = req.files.file;
+  console.log(file);
   const fileName = file.name;
   const fileSize = file.size;
   const ext = path.extname(fileName);
@@ -42,7 +43,7 @@ export const addStationCategory = async (req, res) => {
   }
 
   try {
-    await StationCategory.create({
+    await StationType.create({
       name: req.body.name,
       image: imagePath,
     });
@@ -52,13 +53,13 @@ export const addStationCategory = async (req, res) => {
   }
 };
 
-export const deleteStationCategory = async (req, res) => {
+export const deleteStationType = async (req, res) => {
   if (!req.params.id)
     return res.status(400).json({
       msg: "Station Category id cannot be null.",
     });
 
-  let sc = StationCategory.findByPk(req.params.id);
+  let sc = StationType.findByPk(req.params.id);
   if (!sc) {
     return res
       .status(404)
@@ -66,7 +67,7 @@ export const deleteStationCategory = async (req, res) => {
   }
 
   try {
-    await StationCategory.destroy({
+    await StationType.destroy({
       where: {
         id: req.params.id,
       },

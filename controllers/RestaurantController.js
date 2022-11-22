@@ -1,14 +1,11 @@
 import Restaurant from "../models/RestaurantModel.js";
 import path from "path";
+import { uploadToCloudinary, uploadDocToCloudinary } from "../Cloudinary.js";
 
 export const getRestaurants = async (req, res) => {
   try {
     const response = await Restaurant.findAll();
-    // res.status(200).json(response);
-    res.json({
-      status: 200,
-      message: "Success",
-    });
+    res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
   }
@@ -28,45 +25,66 @@ export const getRestaurantById = async (req, res) => {
 };
 
 export const addRestaurant = async (req, res) => {
-  if (req.files === null)
-    return res.status(400).json({ msg: "No file uploaded." });
+  const allowedTypeImage = [".png", ".jpg", ".jpeg"];
+  const allowedTypeDoc = [".pdf"];
 
-  const name = req.body.name;
-  const latitude = req.body.latitude;
-  const longitude = req.body.longitude;
-  const address = req.body.address;
-  const openTime = req.body.openTime;
-  const closeTime = req.body.closeTime;
+  // HANDLE GAMBAR
+  const imgFile = req.files.imageFile;
+  const imgFileName = imgFile.name;
+  const imgFileSize = imgFile.size;
+  const imgExt = path.extname(imgFileName);
 
-  const image = req.files;
-  const imageSize = files.data.length;
-  const imageExt = path.extname(image.name);
-  const imageName = image.md5 + imageExt;
-  const url = `${req.protocol}://${req.get("host")}/images/${imageName}`;
-  const imageAllowedType = [".png", ".jpg", "jpeg"];
+  if (!allowedTypeImage.includes(imgExt))
+    return res.status(422).json({ msg: "Invalid Images" });
+  if (imgFileSize > 5000000)
+    return res.status(422).json({ msg: "Image must be less than 5 MB" });
 
-  if (!imageAllowedType.includes(imageExt.toLowerCase()))
-    return res.status(422).json({ msg: "Image invalid." });
+  try {
+    var imgResult = await uploadToCloudinary(
+      imgFile.tempFilePath,
+      "restaurant"
+    );
+    var imagePath = imgResult.url;
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
 
-  if (imageSize > 5000000)
-    return res.status(422).json({ msg: "Image must be less than 5 MB." });
+  // HANDLE FILE MENU
+  const menuFile = req.files.menuFile;
+  const menuFileName = menuFile.name;
+  const menuFileSize = menuFile.size;
+  const menuExt = path.extname(menuFileName);
 
-  image.mv(`./public/images/${filename}`, async (err) => {
-    if (err) return res.status(500).json({ msg: err.message });
-    try {
-      await Restaurant.create({
-        name: name,
-        latitude: latitude,
-        longitude: longitude,
-        address: address,
-        openTime: openTime,
-        closeTime: closeTime,
-        image: image,
-        imageURL: url,
-      });
-      res.status(201).json({ msg: "Restaurant added successfully." });
-    } catch (error) {
-      console.log(error.message);
-    }
-  });
+  if (!allowedTypeDoc.includes(menuExt))
+    return res.status(422).json({ msg: "Invalid Menu File" });
+  if (menuFileSize > 5000000)
+    return res.status(422).json({ msg: "Menu must be less than 5 MB" });
+
+  try {
+    var menuResult = await uploadDocToCloudinary(menuFile.tempFilePath, "menu");
+    var menuPath = menuResult.url;
+    console.log(menuResult);
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+
+  console.log(imagePath);
+  console.log(menuPath);
+
+  // INSERT DATABASE
+  const point = { type: "Point", coordinates: req.body.location };
+  try {
+    await Restaurant.create({
+      name: req.body.name,
+      location: point,
+      menuURL: menuPath,
+      address: req.body.address,
+      imageURL: imagePath,
+      priceRange: req.body.priceRange,
+      schedule: req.body.schedule,
+    });
+    res.status(201).json({ msg: "New Restaurant has created" });
+  } catch (error) {
+    console.log(error.message);
+  }
 };

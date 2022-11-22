@@ -1,10 +1,11 @@
-import StationCategory from "../models/StationCategoryModel.js";
+import StationType from "../models/StationTypeModel.js";
 import Station from "../models/StationModel.js";
+import { Sequelize } from "sequelize";
 
 export const getStations = async (req, res) => {
   try {
     const response = await Station.findAll({
-      include: [{ model: StationCategory }],
+      include: [{ model: StationType }],
     });
     res.status(200).json(response);
   } catch (error) {
@@ -22,20 +23,37 @@ export const addStation = async (req, res) => {
       msg: "Station location cannot be null.",
     });
   }
-  var stationCat = StationCategory.findByPk(req.body.stationCategoryId);
-  if (stationCat === null) {
+  var stationType = StationType.findByPk(req.body.station_type_id);
+  if (stationType === null) {
     return res.status(404).json({
-      msg: `Station Category with id ${req.body.categoryId} was not found`,
+      msg: `Station Type with id ${req.body.station_type_id} was not found`,
     });
   }
   try {
-    const point = { type: "Point", coordinates: req.body.location };
+    var point = { type: "Point", coordinates: req.body.location };
+    console.log("????//?//?");
+    console.log(point);
     await Station.create({
       name: req.body.name,
-      location: point,
-      station_category_id: req.body.station_category_id,
+      location: { type: "Point", coordinates: req.body.location },
+      stationTypeId: req.body.station_type_id,
     });
     res.status(201).json({ msg: "New Station has created" });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+export const searchStation = async (req, res) => {
+  const Op = Sequelize.Op;
+  console.log("======");
+  console.log("KEYWORD: " + req.params.keyword);
+  try {
+    const response = await Station.findAll({
+      include: [{ model: StationType }],
+      where: { name: { [Op.substring]: req.params.keyword } },
+    });
+    res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
   }
