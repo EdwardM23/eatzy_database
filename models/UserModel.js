@@ -23,6 +23,9 @@ const User = db.define(
     password: {
       type: DataTypes.STRING,
     },
+    role: {
+      type: DataTypes.STRING(5),
+    },
   },
   {
     freezeTableName: true,
@@ -39,7 +42,7 @@ Restaurant.belongsToMany(User, {
   // uniqueKey: "restaurant_id",
 });
 
-Review.belongsTo(User, { foreignKey: "user_id" });
-User.hasMany(Review, { foreignKey: "user_id" });
+Review.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(Review, { foreignKey: "userId" });
 
 export default User;
