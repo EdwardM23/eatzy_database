@@ -1,8 +1,8 @@
 import { Sequelize } from "sequelize";
 
-var db_name = "heroku_ea7df0ec128262c";
-var username = "b9592fc9f7570e";
-var password = "325757f5";
+var db_name = "heroku_cf5c5ad343017c2";
+var username = "b45d8558fabf0b";
+var password = "0e87aeac";
 var host_name = "us-cdbr-east-06.cleardb.net";
 
 // var db_name = "eatzy_db";
