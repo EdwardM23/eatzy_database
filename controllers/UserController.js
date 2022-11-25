@@ -1,8 +1,9 @@
 import User from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import Wishlist from "../models/WishlistModel.js";
 
-export const userLogin = async (req, res) => {
+export const login = async (req, res) => {
   // checks if email exists
   if (!req.body.email || !req.body.password) {
     return res
@@ -34,7 +35,14 @@ export const userLogin = async (req, res) => {
               const token = jwt.sign({ id: dbUser.id }, "secret", {
                 expiresIn: "1h",
               });
-              res.status(200).json({ message: "user logged in", token: token });
+              res
+                .status(200)
+                .json({
+                  message: "user logged in",
+                  token: token,
+                  username: dbUser.username,
+                  email: dbUser.email,
+                });
             } else {
               // password doesnt match
               res.status(401).json({ message: "invalid credentials" });
@@ -48,7 +56,7 @@ export const userLogin = async (req, res) => {
     });
 };
 
-export const userRegister = async (req, res) => {
+export const register = async (req, res) => {
   // checks if email already exists
   User.findOne({
     where: {
@@ -93,6 +101,77 @@ export const userRegister = async (req, res) => {
     });
 };
 
+export const logout = async (req, res) => {};
+
+export const addWishlist = async (req, res) => {
+  const userId = jwt.verify(req.body.token, "secret").id;
+  const restaurantId = req.body.restaurantId;
+
+  if (!userId || !restaurantId) {
+    res.status(400).json({ msg: "Cannot add wishlist." });
+  }
+
+  const count = await Wishlist.count({
+    where: { userId: userId, restaurantId: restaurantId },
+  });
+
+  if (count > 0) {
+    res.status(400).json({ msg: "Cannot add wishlist." });
+  }
+
+  try {
+    const response = await Wishlist.create({
+      userId: userId,
+      restaurantId: restaurantId,
+    });
+    res.status(200).json({ msg: "Wishlist successfully added." });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getUserById = async (req, res) => {
+  try {
+    const response = await User.findOne({
+      where: {
+        id: req.params.id,
+      },
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+export const deleteWishlist = async (req, res) => {
+  const userId = jwt.verify(req.body.token, "secret").id;
+  const restaurantId = req.body.restaurantId;
+
+  if (!userId || !restaurantId) {
+    res.status(400).json({ msg: "Cannot remove wishlist." });
+  }
+
+  const count = await Wishlist.count({
+    where: { userId: userId, restaurantId: restaurantId },
+  });
+
+  if (count == 0) {
+    res.status(400).json({ msg: "Cannot remove wishlist." });
+  }
+
+  try {
+    const response = await Wishlist.destroy({
+      where: {
+        userId: userId,
+        restaurantId: restaurantId,
+      },
+    });
+    res.status(200).json({ msg: "Wishlist successfully removed." });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const isAuth = async (req, res) => {
   // const authHeader = req.get("Authorization");
   const authHeader = req.params.token;
@@ -121,54 +200,6 @@ export const getUsers = async (req, res) => {
   try {
     const response = await User.findAll();
     res.status(200).json(response);
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-export const getUserById = async (req, res) => {
-  try {
-    const response = await User.findOne({
-      where: {
-        id: req.params.id,
-      },
-    });
-    res.status(200).json(response);
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-export const createUser = async (req, res) => {
-  try {
-    await User.create(req.body);
-    res.status(201).json({ msg: "New User has created" });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-export const updateUser = async (req, res) => {
-  try {
-    await User.update(req.body, {
-      where: {
-        id: req.params.id,
-      },
-    });
-    res.status(201).json({ msg: "User has updated" });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-export const deleteUser = async (req, res) => {
-  try {
-    await User.destroy({
-      where: {
-        id: req.params.id,
-      },
-    });
-    res.status(201).json({ msg: "User has deleted" });
   } catch (error) {
     console.log(error.message);
   }
