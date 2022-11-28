@@ -35,14 +35,12 @@ export const login = async (req, res) => {
               const token = jwt.sign({ id: dbUser.id }, "secret", {
                 expiresIn: "1h",
               });
-              res
-                .status(200)
-                .json({
-                  message: "user logged in",
-                  token: token,
-                  username: dbUser.username,
-                  email: dbUser.email,
-                });
+              res.status(200).json({
+                message: "user logged in",
+                token: token,
+                username: dbUser.username,
+                email: dbUser.email,
+              });
             } else {
               // password doesnt match
               res.status(401).json({ message: "invalid credentials" });
@@ -78,6 +76,7 @@ export const register = async (req, res) => {
               email: req.body.email,
               username: req.body.username,
               password: passwordHash,
+              role: "user",
             })
               .then(() => {
                 res.status(200).json({ message: "user created" });
@@ -100,8 +99,6 @@ export const register = async (req, res) => {
       console.log("error", err);
     });
 };
-
-export const logout = async (req, res) => {};
 
 export const addWishlist = async (req, res) => {
   const userId = jwt.verify(req.body.token, "secret").id;
@@ -130,11 +127,19 @@ export const addWishlist = async (req, res) => {
   }
 };
 
-export const getUserById = async (req, res) => {
+export const getUserInfo = async (req, res) => {
+  const userId = jwt.verify(req.body.token, "secret").id;
+  const restaurantId = req.body.restaurantId;
+
+  if (!userId || !restaurantId) {
+    res.status(400).json({ msg: "Cannot add wishlist." });
+  }
+
   try {
-    const response = await User.findOne({
+    const response = await Wishlist.destroy({
       where: {
-        id: req.params.id,
+        userId: userId,
+        restaurantId: restaurantId,
       },
     });
     res.status(200).json(response);
@@ -202,5 +207,46 @@ export const getUsers = async (req, res) => {
     res.status(200).json(response);
   } catch (error) {
     console.log(error.message);
+  }
+};
+
+export const setAsAdmin = async (req, res) => {
+  if (req.body.id == 0 || !req.body.id) {
+    return res.status(400).json({ msg: "Invalid user ID." });
+  }
+
+  const user = await User.findByPk(req.body.id);
+  if (!user) {
+    return res.status(400).json({ msg: "User not found." });
+  }
+
+  try {
+    const response = await User.update(
+      {
+        role: "admin",
+      },
+      { where: { id: req.body.id } }
+    );
+    res.status(200).json({ msg: "User successfully registered as admin." });
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  if (req.body.id == 0 || !req.body.id) {
+    return res.status(400).json({ msg: "Invalid user ID." });
+  }
+
+  const user = await User.findByPk(req.body.id);
+  if (!user) {
+    return res.status(400).json({ msg: "User not found." });
+  }
+
+  try {
+    const response = await User.destroy({ where: { id: req.body.id } });
+    res.status(200).json({ msg: "User successfully deleted." });
+  } catch (error) {
+    res.status(400).json(error);
   }
 };

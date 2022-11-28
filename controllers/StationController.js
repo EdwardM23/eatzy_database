@@ -2,23 +2,12 @@ import StationType from "../models/StationTypeModel.js";
 import Station from "../models/StationModel.js";
 import { Sequelize } from "sequelize";
 
-export const getStations = async (req, res) => {
-  try {
-    const response = await Station.findAll({
-      include: [{ model: StationType }],
-    });
-    res.status(200).json(response);
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
 export const addStation = async (req, res) => {
   if (!req.body.name)
     return res.status(400).json({
       msg: "Station name cannot be null.",
     });
-  if (!req.body.location) {
+  if (!req.body.longitude || !req.body.latitude) {
     return res.status(400).json({
       msg: "Station location cannot be null.",
     });
@@ -29,25 +18,26 @@ export const addStation = async (req, res) => {
       msg: `Station Type with id ${req.body.station_type_id} was not found`,
     });
   }
+
+  const longitude = req.body.longitude;
+  const latitude = req.body.latitude;
+  const point = { type: "Point", coordinates: [longitude, latitude] };
   try {
-    var point = { type: "Point", coordinates: req.body.location };
-    console.log("????//?//?");
-    console.log(point);
     await Station.create({
       name: req.body.name,
-      location: { type: "Point", coordinates: req.body.location },
+      location: point,
       stationTypeId: req.body.station_type_id,
     });
     res.status(201).json({ msg: "New Station has created" });
   } catch (error) {
-    console.log(error.message);
+    return res.status(400).json(error.message);
   }
 };
 
+export const getNearestStation = async (req, res) => {};
+
 export const searchStation = async (req, res) => {
   const Op = Sequelize.Op;
-  console.log("======");
-  console.log("KEYWORD: " + req.params.keyword);
   try {
     const response = await Station.findAll({
       include: [{ model: StationType }],
@@ -55,10 +45,23 @@ export const searchStation = async (req, res) => {
     });
     res.status(200).json(response);
   } catch (error) {
-    console.log(error.message);
+    return res.status(400).json(error.message);
   }
 };
+
+export const editStation = async (req, res) => {};
 
 export const getStationById = async (req, res) => {};
 
 export const deleteStation = async (req, res) => {};
+
+export const getAllStation = async (req, res) => {
+  try {
+    const response = await Station.findAll({
+      include: [{ model: StationType }],
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+};

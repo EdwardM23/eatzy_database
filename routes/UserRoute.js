@@ -1,20 +1,30 @@
 import express from "express";
 import {
   getUsers,
-  userLogin,
-  userRegister,
+  register,
   isAuth,
+  addWishlist,
+  login,
+  setAsAdmin,
+  deleteWishlist,
+  deleteUser,
 } from "../controllers/UserController.js";
 
 const router = express.Router();
+
+router.post("/register", register);
+router.post("/login", login);
+router.patch("/admin", setAsAdmin);
+router.delete("/user", deleteUser);
+
+router.post("/wishlist", addWishlist);
+router.delete("/wishlist", deleteWishlist);
+
+router.get("/auth/:token", isAuth);
+
 router.get("/user", getUsers);
 // router.get("/users/:id", getUserById);
-// router.post("/users", createUser);
-// router.patch("/users/:id", updateUser);
-// router.delete("/users/:id", deleteUser);
 
-router.post("/login", userLogin);
-router.post("/register", userRegister);
-router.get("/auth/:token", isAuth);
+// NANTI DELETE
 
 export default router;

@@ -8,8 +8,8 @@ import UserRoute from "./routes/UserRoute.js";
 import RestaurantRoute from "./routes/RestaurantRoute.js";
 import StationTypeRoute from "./routes/StationTypeRoute.js";
 import StationRoute from "./routes/StationRoute.js";
-import WishlistRoute from "./routes/WishlistRoute.js";
 import ReviewRoute from "./routes/ReviewRoute.js";
+import CategoryRoute from "./routes/CategoryRoute.js";
 
 const app = express();
 app.use(cors());
@@ -25,11 +25,11 @@ app.use(UserRoute);
 app.use(StationTypeRoute);
 app.use(RestaurantRoute);
 app.use(StationRoute);
-app.use(WishlistRoute);
 app.use(ReviewRoute);
+app.use(CategoryRoute);
 
 (async () => {
-  await db.sync({ alter: true, force: true });
+  await db.sync({ alter: true, force: false });
 })();
 
 cloudinary.config({

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-function getUserId(token) {
+function authUser(token) {
   const authHeader = req.params.token;
   console.log(authHeader);
   if (!authHeader) {

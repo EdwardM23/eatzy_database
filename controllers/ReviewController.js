@@ -33,12 +33,22 @@ export const addReview = async (req, res) => {
   }
 };
 
-export const getAllReview = async (req, res) => {
+export const deleteReview = async (req, res) => {
+  if (req.params.id == 0) {
+    return res.status(400).json({ msg: "Review Id cannot be null." });
+  }
+
+  var review = Review.findByPk(req.params.id);
+  console.log(review);
+  if (!review) {
+    return res.status(400).json("Review not found.");
+  }
+
   try {
-    const response = await Review.findAll();
-    res.status(200).json(response);
+    const response = await Review.destroy({ where: { id: req.params.id } });
+    res.status(200).json("Review has deleted succesfully.");
   } catch (error) {
-    console.log(error.message);
+    return res.status(400).json(error.message);
   }
 };
 
@@ -86,21 +96,11 @@ export const getReviewById = async (req, res) => {
   }
 };
 
-export const deleteReview = async (req, res) => {
-  if (req.params.id == 0) {
-    return res.status(400).json({ msg: "Review Id cannot be null." });
-  }
-
-  var review = Review.findByPk(req.params.id);
-  console.log(review);
-  if (!review) {
-    return res.status(400).json("Review not found.");
-  }
-
+export const getAllReview = async (req, res) => {
   try {
-    const response = await Review.destroy({ where: { id: req.params.id } });
-    res.status(200).json("Review has deleted succesfully.");
+    const response = await Review.findAll();
+    res.status(200).json(response);
   } catch (error) {
-    return res.status(400).json(error.message);
+    console.log(error.message);
   }
 };

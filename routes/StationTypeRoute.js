@@ -1,13 +1,13 @@
 import express from "express";
 import {
-  getStationTypes,
   addStationType,
   deleteStationType,
+  getAllStationType,
 } from "../controllers/StationTypeController.js";
 
 const router = express.Router();
-router.get("/station-type", getStationTypes);
 router.post("/station-type", addStationType);
 router.delete("/station-type/:id", deleteStationType);
+router.get("/station-type", getAllStationType);
 
 export default router;

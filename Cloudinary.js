@@ -19,11 +19,20 @@ export async function uploadToCloudinary(locaFilePath, folderName) {
 }
 
 export async function uploadDocToCloudinary(localFilePath, folderName) {
-  return cloudinary.uploader.upload(
-    localFilePath,
-    { folder: folderName },
-    function (error, result) {
+  return cloudinary.uploader
+    .upload(localFilePath, { folder: folderName }, function (error, result) {
       console.log(result, error);
-    }
-  );
+    })
+    .then((result) => {
+      fs.unlinkSync(localFilePath);
+      return {
+        message: "Success",
+        url: result.url,
+      };
+    })
+    .catch((error) => {
+      // Remove file from local uploads folder
+      fs.unlinkSync(locaFilePath);
+      return { message: "Fail" };
+    });
 }
