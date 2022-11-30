@@ -5,13 +5,11 @@ import {
   editStation,
   getAllStation,
   getNearestStation,
-  searchStation,
 } from "../controllers/StationController.js";
 
 const router = express.Router();
 router.post("/station", addStation);
-router.get("/station/nearest", getNearestStation);
-router.get("/station/:keyword", searchStation);
+router.post("/station/nearest", getNearestStation);
 router.patch("/station/:id", editStation);
 router.delete("/station/:id", deleteStation);
 router.get("/station", getAllStation);

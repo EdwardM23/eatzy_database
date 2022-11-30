@@ -5,12 +5,14 @@ import {
   editRestaurant,
   getAllRestaurant,
   getAllRestaurantInWishlist,
+  getNearestRestaurant,
   getRestaurantById,
 } from "../controllers/RestaurantController.js";
 
 const router = express.Router();
-router.get("/restaurants/:id", getRestaurantById);
-router.post("/restaurants", addRestaurant);
+router.get("/restaurant/:id", getRestaurantById);
+router.get("/restaurant/nearest/:stationId", getNearestRestaurant);
+router.post("/restaurant", addRestaurant);
 router.patch("/restaurant/:id", editRestaurant);
 router.get("/restaurants", getAllRestaurant);
 router.get("/wishlist/:token", getAllRestaurantInWishlist);

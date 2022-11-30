@@ -32,7 +32,7 @@ export async function uploadDocToCloudinary(localFilePath, folderName) {
     })
     .catch((error) => {
       // Remove file from local uploads folder
-      fs.unlinkSync(locaFilePath);
+      fs.unlinkSync(localFilePath);
       return { message: "Fail" };
     });
 }

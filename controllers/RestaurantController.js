@@ -4,7 +4,10 @@ import jwt from "jsonwebtoken";
 import { uploadToCloudinary, uploadDocToCloudinary } from "../Cloudinary.js";
 import RestaurantDetail from "../models/RestaurantDetailModel.js";
 import { response } from "express";
+import axios from "axios";
+
 import CategoryDetail from "../models/CategoryDetailModel.js";
+import Station from "../models/StationModel.js";
 
 export const getRestaurantById = async (req, res) => {
   try {
@@ -26,8 +29,12 @@ export const addRestaurant = async (req, res) => {
     const imgFileSize = imgFile.size;
     const imgExt = path.extname(imgFileName);
 
+    if (!req.body.longitude || !req.body.latitude) {
+      return res.status(400).json({ msg: "Location cannot be empty" });
+    }
+
     if (!allowedTypeImage.includes(imgExt))
-      return res.status(422).json({ msg: "Invalid Images" });
+      return res.status(422).json({ msg: "Invalid Image" });
     if (imgFileSize > 5000000)
       return res.status(422).json({ msg: "Image must be less than 5 MB" });
 
@@ -40,7 +47,9 @@ export const addRestaurant = async (req, res) => {
     } catch (error) {
       res.status(400).json(error.message);
     }
-  } catch (error) {}
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
 
   // HANDLE FILE MENU
   try {
@@ -60,39 +69,43 @@ export const addRestaurant = async (req, res) => {
         "menu"
       );
       var menuPath = menuResult.url;
-      console.log(menuResult);
+      // console.log(menuResult);
     } catch (error) {
-      return res.status(400).json(error.message);
+      return res
+        .status(400)
+        .json({ msg: error.message, keterangan: "Error upload file menu" });
     }
-  } catch (error) {}
-
-  // console.log(imagePath);
-  // console.log(menuPath);
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ msg: error.message, keterangan: "Error insert file menu" });
+  }
 
   // INSERT DATABASE
-  const point = { type: "Point", coordinates: req.body.location };
-  var restaurantId = 1;
+  const longitude = req.body.longitude;
+  const latitude = req.body.latitude;
+  const point = { type: "Point", coordinates: [longitude, latitude] };
+  var restaurantId = 2;
   try {
-    // const response = await Restaurant.create({
-    //   name: req.body.name,
-    //   location: point,
-    //   menuURL: menuPath,
-    //   address: req.body.address,
-    //   imageURL: imagePath,
-    //   priceRange: req.body.priceRange,
-    //   schedule: req.body.schedule,
-    // });
-    // restaurantId = response.dataValues.id;
-    res.status(201).json({ msg: "New Restaurant has created" });
+    await Restaurant.create({
+      name: req.body.name,
+      location: point,
+      menuURL: menuPath,
+      address: req.body.address,
+      imageURL: imagePath,
+      priceRange: req.body.priceRange,
+      schedule: req.body.schedule,
+    }).then((response) => {
+      restaurantId = response.dataValues.id;
+    });
   } catch (error) {
+    console.log("masalah disini");
     return res.status(400).json(error.message);
   }
 
-  // console.log("category", req.body.categoryId);
-  // for(const key in req.body.category)
+  // ADD RESTAURANT CATEGORIES
 
   for (var i = 0; i < req.body.categoryId.length; i++) {
-    console.log("index:", req.body.categoryId[i]);
     try {
       await CategoryDetail.create({
         categoryId: req.body.categoryId[i],
@@ -101,6 +114,81 @@ export const addRestaurant = async (req, res) => {
     } catch (error) {
       return res.status(400).json(error.message);
     }
+  }
+
+  // ADD NEAREST STATION
+  axios.defaults.headers.common["Authorization"] =
+    "prj_test_sk_f6c1041c0d4f9b99a04d93ecc7d94cb757620593";
+  axios.defaults.headers.common["accept-encoding"] = null;
+
+  try {
+    const stationList = await Station.findAll();
+    for (var i = 0; i < stationList.length; i++) {
+      // CHECK DISTANCE BY LONG LAT
+      const distance1 = getLongLatDistance(
+        req.body.latitude,
+        stationList[i].dataValues.location.coordinates[1],
+        req.body.longitude,
+        stationList[i].dataValues.location.coordinates[0]
+      );
+      // console.log(req.body.name, stationList[i].dataValues.name, distance1);
+      if (distance1 <= 1) {
+        const URL =
+          "https://api.radar.io/v1/route/distance?origin=" +
+          req.body.latitude +
+          "," +
+          req.body.longitude +
+          "&destination=" +
+          stationList[i].dataValues.location.coordinates[1] +
+          "," +
+          stationList[i].dataValues.location.coordinates[0] +
+          "&modes=foot&units=metric";
+        try {
+          await axios.get(URL).then((response) => {
+            // console.log("RESPONSE", response.data.routes.foot.distance.value);
+            if (response.data.routes.foot.distance.value <= 1000) {
+              console.log(
+                req.body.name,
+                distance1,
+                response.data.routes.foot.distance.value
+              );
+              try {
+                RestaurantDetail.create({
+                  restaurantId: restaurantId,
+                  stationId: stationList[i].dataValues.id,
+                  walkDistance: response.data.routes.foot.distance.value,
+                });
+              } catch (error) {
+                return res.status(400).json({ msg: error.message });
+              }
+            }
+          });
+        } catch (error) {
+          console.log("ERROR", error.message);
+        }
+      }
+    }
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+
+  res.status(201).json({ msg: "New Restaurant has created" });
+};
+
+export const getNearestRestaurant = async (req, res) => {
+  if (!req.params.stationId) {
+    return res.status(400).json({ msg: "Station id cannot be empty." });
+  }
+
+  try {
+    const response = await Station.findAndCountAll({
+      include: [{ model: Restaurant }],
+      where: { id: req.params.stationId },
+    });
+
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(400).json(error.message);
   }
 };
 
@@ -131,3 +219,29 @@ export const getAllRestaurantInWishlist = async (req, res) => {
 };
 
 export const deleteRestaurant = async (req, res) => {};
+
+function getLongLatDistance(lat1, lat2, lon1, lon2) {
+  // The math module contains a function
+  // named toRadians which converts from
+  // degrees to radians.
+  lon1 = (lon1 * Math.PI) / 180;
+  lon2 = (lon2 * Math.PI) / 180;
+  lat1 = (lat1 * Math.PI) / 180;
+  lat2 = (lat2 * Math.PI) / 180;
+
+  // Haversine formula
+  let dlon = lon2 - lon1;
+  let dlat = lat2 - lat1;
+
+  let a =
+    Math.pow(Math.sin(dlat / 2), 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dlon / 2), 2);
+  let c = 2 * Math.asin(Math.sqrt(a));
+
+  // Radius of earth in kilometers. Use 3956
+  // for miles
+  let r = 6371;
+
+  // calculate the result
+  return c * r;
+}
