@@ -39,8 +39,8 @@ export const addStation = async (req, res) => {
 
 export const getNearestStation = async (req, res) => {
   // SEARCH STATION
+  const Op = Sequelize.Op;
   if (req.body.keyword) {
-    const Op = Sequelize.Op;
     try {
       const response = await Station.findAll({
         include: [{ model: StationType }],
@@ -58,7 +58,10 @@ export const getNearestStation = async (req, res) => {
   axios.defaults.headers.common["accept-encoding"] = null;
 
   try {
-    const stationList = await Station.findAll();
+    const stationList = await Station.findAll({
+      include: [{ model: StationType }],
+      where: { name: { [Op.substring]: req.body.keyword } },
+    });
     var filteredList = [];
     for (var i = 0; i < stationList.length; i++) {
       // CHECK DISTANCE BY LONG LAT
