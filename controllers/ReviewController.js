@@ -2,10 +2,14 @@ import Review from "../models/ReviewModel.js";
 import jwt from "jsonwebtoken";
 import { Sequelize } from "sequelize";
 import User from "../models/UserModel.js";
+import path from "path";
+import { uploadToCloudinary } from "../Cloudinary.js";
 
 export const addReview = async (req, res) => {
   const userId = jwt.verify(req.body.token, "secret").id;
   const restaurantId = req.body.restaurantId;
+  var image;
+  var imagePath = "";
 
   if (!userId || !restaurantId) {
     return res.status(400).json({ msg: "Cannot add review." });
@@ -19,6 +23,27 @@ export const addReview = async (req, res) => {
     return res.status(400).json({ msg: "Cannot add review." });
   }
 
+  if (req.files) {
+    image = req.files.file;
+    const fileName = image.name;
+    const fileSize = image.size;
+    const ext = path.extname(fileName);
+    const allowedType = [".png", ".jpg", ".jpeg"];
+
+    if (!allowedType.includes(ext.toLowerCase()))
+      return res.status(422).json({ msg: "Invalid Images" });
+    if (fileSize > 5000000)
+      return res.status(422).json({ msg: "Image must be less than 5 MB" });
+
+    try {
+      var locaFilePath = image.tempFilePath;
+      var result = await uploadToCloudinary(locaFilePath, "review");
+      imagePath = result.url;
+    } catch (error) {
+      return res.status(400).json(error.message);
+    }
+  }
+
   try {
     const response = await Review.create({
       userId: userId,
@@ -26,6 +51,7 @@ export const addReview = async (req, res) => {
       rating: req.body.rating,
       review: req.body.review,
       isAnonymous: req.body.isAnonymous,
+      imageURL: imagePath,
     });
     res.status(200).json({ msg: "Review successfully added." });
   } catch (error) {

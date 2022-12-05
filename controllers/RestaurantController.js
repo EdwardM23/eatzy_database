@@ -8,6 +8,9 @@ import axios from "axios";
 
 import CategoryDetail from "../models/CategoryDetailModel.js";
 import Station from "../models/StationModel.js";
+import Review from "../models/ReviewModel.js";
+import { Sequelize, where } from "sequelize";
+import Category from "../models/CategoryModel.js";
 
 export const getRestaurantById = async (req, res) => {
   try {
@@ -180,9 +183,50 @@ export const getNearestRestaurant = async (req, res) => {
     return res.status(400).json({ msg: "Station id cannot be empty." });
   }
 
+  const Op = Sequelize.Op;
   try {
-    const response = await Station.findAndCountAll({
-      include: [{ model: Restaurant }],
+    const response = await Station.findAll({
+      // attributes: [],
+      include: {
+        subQuery: false,
+        model: Restaurant,
+        // attributes: [
+        //   "name",
+        //   "priceRange",
+        //   "schedule",
+        //   // [Sequelize.fn("AVG", Sequelize.col("rating")), "avgRating"],
+        //   // [Sequelize.fn("COUNT", Sequelize.col("rating")), "countReview"],
+        // ],
+
+        include: [
+          {
+            model: Review,
+            // attributes: [
+            //   [Sequelize.fn("AVG", Sequelize.col("rating")), "avgRating"],
+            //   [Sequelize.fn("COUNT", Sequelize.col("rating")), "countReview"],
+            // ],
+            // group: ["avgRating", "countReview"],
+            // where: { restaurantId: { [Op.col]: "restaurants.id" } },
+          },
+          {
+            model: Category,
+            attributes: ["name"],
+            through: {
+              attributes: [],
+            },
+          },
+        ],
+        group: [
+          // "`Restaurant`.`id`",
+          "`Restaurant`.`name`",
+          "`Restaurant`.`priceRange`",
+          "`Restaurant`.`schedule`",
+          // "`Category`.`name`",
+        ],
+        through: {
+          attributes: ["walkDistance"],
+        },
+      },
       where: { id: req.params.stationId },
     });
 
@@ -192,7 +236,28 @@ export const getNearestRestaurant = async (req, res) => {
   }
 };
 
-export const editRestaurant = async (req, res) => {};
+export const editRestaurant = async (req, res) => {
+  if (!req.params.id) {
+    return res.status(400).json({ msg: "Restaurant id is empty." });
+  }
+
+  const restaurant = await Restaurant.findByPk(req.params.id);
+  console.log(restaurant.dataValues);
+  if (restaurant === null)
+    return res.status(400).json({ msg: "Restaurant not found." });
+
+  try {
+    if (req.body.name) restaurant.name = req.body.name;
+    if (req.body.address) restaurant.address = req.body.address;
+    if (req.body.priceRange) restaurant.priceRange = req.body.priceRange;
+    if (req.body.schedule) restaurant.schedule = req.body.schedule;
+
+    restaurant.save();
+    res.status(200).json({ msg: "Restaurant successfully deleted." });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
 
 export const getAllRestaurant = async (req, res) => {
   try {
@@ -214,11 +279,22 @@ export const getAllRestaurantInWishlist = async (req, res) => {
     });
     res.status(200).json(response);
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
   }
 };
 
-export const deleteRestaurant = async (req, res) => {};
+export const deleteRestaurant = async (req, res) => {
+  try {
+    const response = await Restaurant.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+    res.status(200).json({ msg: "Restaurant successfully deleted." });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
 
 function getLongLatDistance(lat1, lat2, lon1, lon2) {
   // The math module contains a function
