@@ -55,7 +55,7 @@ export const addReview = async (req, res) => {
     });
     res.status(200).json({ msg: "Review successfully added." });
   } catch (error) {
-    console.log(error);
+    return res.status(400).json(error.message);
   }
 };
 
@@ -65,7 +65,6 @@ export const deleteReview = async (req, res) => {
   }
 
   var review = Review.findByPk(req.params.id);
-  console.log(review);
   if (!review) {
     return res.status(400).json("Review not found.");
   }
@@ -80,7 +79,7 @@ export const deleteReview = async (req, res) => {
 
 export const getReviewByRestaurantId = async (req, res) => {
   if (req.params.restaurantId == 0) {
-    return res.status(400).json({ msg: "Restaurant Id cannot be null." });
+    return res.status(400).json({ msg: "Restaurant Id cannot be empty." });
   }
 
   try {
@@ -127,6 +126,23 @@ export const getAllReview = async (req, res) => {
     const response = await Review.findAll();
     res.status(200).json(response);
   } catch (error) {
-    console.log(error.message);
+    return res.status(400).json(error.message);
+  }
+};
+
+export const getTopReview = async (req, res) => {
+  if (req.params.restaurantId == 0) {
+    return res.status(400).json({ msg: "Restaurant Id cannot be empty." });
+  }
+
+  try {
+    const response = await Review.findAll({
+      where: { restaurantId: req.params.restaurantId },
+      order: [["rating", "DESC"]],
+      limit: 2,
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    return res.status(400).json(error.message);
   }
 };
