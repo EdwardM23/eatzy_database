@@ -147,3 +147,22 @@ export const getTopReview = async (req, res) => {
     return res.status(400).json(error.message);
   }
 };
+
+export const getOverallRating = async (req, res) => {
+  if (req.params.restaurantId == 0) {
+    return res.status(400).json({ msg: "Restaurant Id cannot be empty." });
+  }
+
+  try {
+    const response = await Review.findAll({
+      attributes: [
+        [Sequelize.fn("AVG", Sequelize.col("rating")), "averageRating"],
+        [Sequelize.fn("COUNT", Sequelize.col("rating")), "countReview"],
+      ],
+      where: { restaurantId: req.params.restaurantId },
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+};

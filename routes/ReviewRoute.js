@@ -3,6 +3,7 @@ import {
   addReview,
   deleteReview,
   getAllReview,
+  getOverallRating,
   getReviewById,
   getReviewByRestaurantId,
   getTopReview,
@@ -16,5 +17,6 @@ router.get("/review/:id", getReviewById);
 router.post("/review/", addReview);
 router.delete("/review/:id", deleteReview);
 router.get("/review/top/:restaurantId", getTopReview);
+router.get("/review/average/:restaurantId", getOverallRating);
 
 export default router;

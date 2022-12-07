@@ -12,7 +12,6 @@ export const addStationType = async (req, res) => {
     return res.status(400).json({ msg: "No File Uploaded" });
 
   const file = req.files.file;
-  // console.log(file);
   const fileName = file.name;
   const fileSize = file.size;
   const ext = path.extname(fileName);
@@ -28,7 +27,6 @@ export const addStationType = async (req, res) => {
     var locaFilePath = file.tempFilePath;
     var result = await uploadToCloudinary(locaFilePath, "station-category");
     imagePath = result.url;
-    // console.log(result);
   } catch (error) {
     return res.status(400).json(error.message);
   }

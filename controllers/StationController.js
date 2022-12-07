@@ -84,13 +84,12 @@ export const getNearestStation = async (req, res) => {
           "&modes=foot&units=metric";
         try {
           await axios.get(URL).then((response) => {
-            // console.log("RESPONSE", response.data.routes.foot.distance.value);
             if (response.data.routes.foot.distance.value <= 1000) {
               filteredList.push(stationList[i].dataValues);
             }
           });
         } catch (error) {
-          console.log("ERROR", error.message);
+          return res.status(400).json(error.message);
         }
       }
     }
@@ -129,11 +128,52 @@ function getLongLatDistance(lat1, lat2, lon1, lon2) {
 
 const getWalkDistance = async (lat1, lat2, lon1, lon2) => {};
 
-export const editStation = async (req, res) => {};
+export const editStation = async (req, res) => {
+  if (!req.params.id) {
+    return res.status(400).json({ msg: "Station id is empty." });
+  }
 
-export const getStationById = async (req, res) => {};
+  const station = await Station.findByPk(req.params.id);
+  if (station === null)
+    return res.status(400).json({ msg: "Station not found." });
 
-export const deleteStation = async (req, res) => {};
+  try {
+    if (req.body.name) station.name = req.body.name;
+    if (req.body.station_type_id)
+      station.stationTypeId = req.body.station_type_id;
+
+    station.save();
+    res.status(200).json({ msg: "Station successfully edited." });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
+
+export const getStationById = async (req, res) => {
+  try {
+    const response = await Station.findByPk(req.params.id);
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
+
+export const deleteStation = async (req, res) => {
+  const station = await Station.findByPk(req.params.id);
+  if (station === null)
+    return res.status(400).json({ msg: "Station not found." });
+
+  try {
+    const response = await Station.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+    res.status(200).json({ msg: "Station successfully deleted." });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
 
 export const getAllStation = async (req, res) => {
   try {

@@ -1,2 +1,3 @@
 node_modules
-./Database.js
+tmp/
+config/Database.js

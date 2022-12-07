@@ -49,8 +49,8 @@ export const login = async (req, res) => {
         );
       }
     })
-    .catch((err) => {
-      console.log("error", err);
+    .catch((error) => {
+      return res.status(400).json(error.message);
     });
 };
 
@@ -81,8 +81,8 @@ export const register = async (req, res) => {
               .then(() => {
                 res.status(200).json({ message: "user created" });
               })
-              .catch((err) => {
-                console.log(err);
+              .catch((error) => {
+                return res.status(400).json(error.message);
                 res
                   .status(502)
                   .json({ message: "error while creating the user" });
@@ -95,8 +95,8 @@ export const register = async (req, res) => {
         return res.status(400).json({ message: "email not provided" });
       }
     })
-    .catch((err) => {
-      console.log("error", err);
+    .catch((error) => {
+      return res.status(400).json(error.message);
     });
 };
 
@@ -118,7 +118,7 @@ export const addWishlist = async (req, res) => {
   });
 
   if (count > 0) {
-    res.status(400).json({ msg: "Cannot add wishlist." });
+    res.status(403).json({ msg: "Cannot add wishlist." });
   }
 
   try {
@@ -149,7 +149,7 @@ export const getUserInfo = async (req, res) => {
     });
     res.status(200).json(response);
   } catch (error) {
-    console.log(error.message);
+    return res.status(400).json(error.message);
   }
 };
 
@@ -181,19 +181,19 @@ export const deleteWishlist = async (req, res) => {
 
     res.status(200).json({ msg: "Wishlist successfully removed." });
   } catch (error) {
-    console.log(error);
+    return res.status(400).json(error.message);
   }
 };
 
 export const isAuth = async (req, res) => {
   // const authHeader = req.get("Authorization");
   const authHeader = req.params.token;
-  console.log(authHeader);
+
   if (!authHeader) {
     return res.status(401).json({ message: "not authenticated" });
   }
   const token = authHeader.split(" ")[0];
-  console.log(token);
+
   let decodedToken;
   try {
     decodedToken = jwt.verify(token, "secret");
@@ -214,7 +214,7 @@ export const getUsers = async (req, res) => {
     const response = await User.findAll();
     res.status(200).json(response);
   } catch (error) {
-    console.log(error.message);
+    return res.status(400).json(error.message);
   }
 };
 
