@@ -87,6 +87,7 @@ export const getReviewByRestaurantId = async (req, res) => {
       where: { restaurantId: req.params.restaurantId },
       include: User,
       attributes: [
+        "id",
         "review",
         "rating",
         "imageURL",
