@@ -21,7 +21,7 @@ export async function uploadToCloudinary(locaFilePath, folderName) {
 export async function uploadDocToCloudinary(localFilePath, folderName) {
   return cloudinary.uploader
     .upload(localFilePath, { folder: folderName }, function (error, result) {
-      console.log(result, error);
+      // console.log(result, error);
     })
     .then((result) => {
       fs.unlinkSync(localFilePath);

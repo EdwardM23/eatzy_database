@@ -2,12 +2,12 @@ import jwt from "jsonwebtoken";
 
 function authUser(token) {
   const authHeader = req.params.token;
-  console.log(authHeader);
+  // console.log(authHeader);
   if (!authHeader) {
     return res.status(401).json({ message: "not authenticated" });
   }
   token = authHeader.split(" ")[0];
-  console.log(token);
+  // console.log(token);
   let decodedToken;
   try {
     decodedToken = jwt.verify(token, "secret");

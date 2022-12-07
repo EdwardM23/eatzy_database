@@ -151,11 +151,11 @@ export const addRestaurant = async (req, res) => {
           await axios.get(URL).then((response) => {
             // console.log("RESPONSE", response.data.routes.foot.distance.value);
             if (response.data.routes.foot.distance.value <= 1000) {
-              console.log(
-                req.body.name,
-                distance1,
-                response.data.routes.foot.distance.value
-              );
+              // console.log(
+              //   req.body.name,
+              //   distance1,
+              //   response.data.routes.foot.distance.value
+              // );
               try {
                 RestaurantDetail.create({
                   restaurantId: restaurantId,
@@ -168,7 +168,7 @@ export const addRestaurant = async (req, res) => {
             }
           });
         } catch (error) {
-          console.log("ERROR", error.message);
+          return res.status(400).json({ msg: error.message });
         }
       }
     }
