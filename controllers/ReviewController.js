@@ -138,9 +138,27 @@ export const getTopReview = async (req, res) => {
 
   try {
     const response = await Review.findAll({
+      attributes: [
+        "id",
+        "review",
+        "rating",
+        "imageURL",
+        "review",
+        "createdAt",
+        [
+          Sequelize.literal(
+            `CASE review.isAnonymous WHEN 1 THEN CONCAT(SUBSTRING(user.username, 1, 2), '***') ELSE user.username END`
+          ),
+          "username",
+        ],
+      ],
       where: { restaurantId: req.params.restaurantId },
       order: [["rating", "DESC"]],
       limit: 2,
+      include: {
+        model: User,
+        attributes: [],
+      },
     });
     res.status(200).json(response);
   } catch (error) {
