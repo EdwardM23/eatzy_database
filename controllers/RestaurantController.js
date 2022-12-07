@@ -12,6 +12,7 @@ import Review from "../models/ReviewModel.js";
 import { Sequelize, where } from "sequelize";
 import Category from "../models/CategoryModel.js";
 import Wishlist from "../models/WishlistModel.js";
+import User from "../models/UserModel.js";
 
 export const getRestaurantById = async (req, res) => {
   try {
@@ -246,9 +247,21 @@ export const getAllRestaurantInWishlist = async (req, res) => {
   const userId = jwt.verify(req.params.token, "secret").id;
 
   try {
-    const response = await Wishlist.findAll({
+    const response = await User.findAll({
+      attributes: [],
+      include: [
+        {
+          model: Restaurant,
+          include: {
+            attributes: ["name"],
+            model: Category,
+            through: { attributes: [] },
+          },
+          through: { attributes: [] },
+        },
+      ],
       where: {
-        userId: userId,
+        id: userId,
       },
     });
     res.status(200).json(response);
