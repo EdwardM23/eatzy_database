@@ -11,6 +11,7 @@ import Station from "../models/StationModel.js";
 import Review from "../models/ReviewModel.js";
 import { Sequelize, where } from "sequelize";
 import Category from "../models/CategoryModel.js";
+import Wishlist from "../models/WishlistModel.js";
 
 export const getRestaurantById = async (req, res) => {
   try {
