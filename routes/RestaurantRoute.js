@@ -11,7 +11,7 @@ import {
 
 const router = express.Router();
 router.get("/restaurant/:id", getRestaurantById);
-router.get("/restaurant/nearest/:stationId", getNearestRestaurant);
+router.post("/restaurant/nearest/:stationId", getNearestRestaurant);
 router.post("/restaurant", addRestaurant);
 router.patch("/restaurant/:id", editRestaurant);
 router.get("/restaurants", getAllRestaurant);

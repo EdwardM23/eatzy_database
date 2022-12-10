@@ -180,11 +180,17 @@ export const addRestaurant = async (req, res) => {
 };
 
 export const getNearestRestaurant = async (req, res) => {
+  const Op = Sequelize.Op;
+  var whereCond = {};
+
   if (!req.params.stationId) {
     return res.status(400).json({ msg: "Station id cannot be empty." });
   }
 
-  const Op = Sequelize.Op;
+  if (req.body.categories) {
+    whereCond = { id: { [Op.in]: [req.body.categories] } };
+  }
+
   try {
     const response = await Station.findAll({
       include: {
@@ -197,12 +203,19 @@ export const getNearestRestaurant = async (req, res) => {
             through: {
               attributes: [],
             },
+            where: whereCond,
           },
         ],
         through: {
           attributes: ["walkDistance"],
         },
       },
+      order: [
+        [
+          Sequelize.literal("`restaurants->restaurant_detail`.`walkDistance`"),
+          "ASC",
+        ],
+      ],
       where: { id: req.params.stationId },
     });
 
