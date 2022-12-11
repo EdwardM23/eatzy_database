@@ -2,6 +2,9 @@ import User from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Wishlist from "../models/WishlistModel.js";
+import History from "../models/HistoryModel.js";
+import Restaurant from "../models/RestaurantModel.js";
+import Category from "../models/CategoryModel.js";
 
 export const login = async (req, res) => {
   // checks if email exists
@@ -256,5 +259,74 @@ export const deleteUser = async (req, res) => {
     res.status(200).json({ msg: "User successfully deleted." });
   } catch (error) {
     res.status(400).json(error);
+  }
+};
+
+export const addHistory = async (req, res) => {
+  var userId = 0;
+  try {
+    userId = jwt.verify(req.body.token, "secret").id;
+  } catch (error) {
+    return res.status(400).json({ msg: "Token expired." });
+  }
+  const restaurantId = req.body.restaurantId;
+
+  if (!userId || !restaurantId) {
+    res.status(400).json({ msg: "Cannot add history." });
+  }
+
+  try {
+    const history = await History.findOne({
+      where: { userId: userId, restaurantId: restaurantId },
+    });
+
+    if (history) {
+      history.changed("updatedAt", true);
+      history.save();
+      return res.status(200).json({ msg: "History successfully added." });
+    }
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+
+  try {
+    const response = await History.create({
+      userId: userId,
+      restaurantId: restaurantId,
+    });
+    return res.status(200).json({ msg: "History successfully added." });
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+};
+
+export const getLatestHistory = async (req, res) => {
+  var userId = 0;
+  try {
+    userId = jwt.verify(req.params.token, "secret").id;
+  } catch (error) {
+    return res.status(400).json({ msg: "Token expired." });
+  }
+
+  try {
+    const response = await History.findAll({
+      where: { userId: userId },
+      limit: 8,
+      attributes: ["updatedAt"],
+      include: [
+        {
+          model: Restaurant,
+          include: {
+            attributes: ["name"],
+            model: Category,
+            through: { attributes: [] },
+          },
+        },
+      ],
+      order: [["updatedAt", "DESC"]],
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(400).json(error.message);
   }
 };

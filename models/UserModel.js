@@ -3,6 +3,7 @@ import db from "../config/Database.js";
 import Restaurant from "./RestaurantModel.js";
 import Review from "./ReviewModel.js";
 import Wishlist from "./WishlistModel.js";
+import History from "./HistoryModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -36,11 +37,13 @@ User.belongsToMany(Restaurant, {
   through: Wishlist,
   // uniqueKey: "user_id",
 });
-
 Restaurant.belongsToMany(User, {
   through: Wishlist,
   // uniqueKey: "restaurant_id",
 });
+
+User.hasMany(History, { foreignKey: "userId" });
+History.belongsTo(User, { foreignKey: "userId" });
 
 Review.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Review, { foreignKey: "userId" });

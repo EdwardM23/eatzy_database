@@ -8,6 +8,8 @@ import {
   setAsAdmin,
   deleteWishlist,
   deleteUser,
+  addHistory,
+  getLatestHistory,
 } from "../controllers/UserController.js";
 
 const router = express.Router();
@@ -19,6 +21,9 @@ router.delete("/user", deleteUser);
 
 router.post("/wishlist", addWishlist);
 router.delete("/wishlist", deleteWishlist);
+
+router.post("/history", addHistory);
+router.get("/history/:token", getLatestHistory);
 
 router.get("/auth/:token", isAuth);
 

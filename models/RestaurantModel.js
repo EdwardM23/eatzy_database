@@ -6,6 +6,7 @@ import CategoryDetail from "./CategoryDetailModel.js";
 // import RestaurantDetail from "./RestaurantDetailModel.js";
 import User from "./UserModel.js";
 import Category from "./CategoryModel.js";
+import History from "./HistoryModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -27,6 +28,9 @@ const Restaurant = db.define(
 
 Review.belongsTo(Restaurant, { foreignKey: "restaurantId" });
 Restaurant.hasMany(Review, { foreignKey: "restaurantId" });
+
+Restaurant.hasMany(History, { foreignKey: "restaurantId" });
+History.belongsTo(Restaurant, { foreignKey: "restaurantId" });
 
 Category.belongsToMany(Restaurant, { through: CategoryDetail });
 Restaurant.belongsToMany(Category, { through: CategoryDetail });
