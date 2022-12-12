@@ -55,3 +55,16 @@ export const getCuisineCategory = async (req, res) => {
     return res.status(400).json(error);
   }
 };
+
+export const deleteCategory = async (req, res) => {
+  try {
+    const response = await Category.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+    res.status(200).json({ msg: "Category successfully deleted." });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
