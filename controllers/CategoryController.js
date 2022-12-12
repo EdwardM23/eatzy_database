@@ -1,4 +1,6 @@
 import Category from "../models/CategoryModel.js";
+import db from "../config/Database.js";
+import { QueryTypes } from "sequelize";
 
 export const addCategory = async (req, res) => {
   if (!req.body.name) {
@@ -64,6 +66,17 @@ export const deleteCategory = async (req, res) => {
       },
     });
     res.status(200).json({ msg: "Category successfully deleted." });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
+
+export const getCategoryRestaurant = async (req, res) => {
+  try {
+    const response = await db.query("SELECT * FROM category_detail", {
+      type: QueryTypes.SELECT,
+    });
+    res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
   }
