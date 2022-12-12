@@ -5,6 +5,8 @@ import { uploadToCloudinary, uploadDocToCloudinary } from "../Cloudinary.js";
 import RestaurantDetail from "../models/RestaurantDetailModel.js";
 import { response } from "express";
 import axios from "axios";
+import db from "../config/Database.js";
+import { QueryTypes } from "sequelize";
 
 import CategoryDetail from "../models/CategoryDetailModel.js";
 import Station from "../models/StationModel.js";
@@ -181,20 +183,45 @@ export const addRestaurant = async (req, res) => {
 
 export const getNearestRestaurant = async (req, res) => {
   const Op = Sequelize.Op;
-  var whereCond = {};
+  var resCond = "";
 
   if (!req.params.stationId) {
     return res.status(400).json({ msg: "Station id cannot be empty." });
   }
 
-  if (req.body.categories) {
-    whereCond = { id: { [Op.in]: [req.body.categories] } };
-  }
-
   try {
+    var restaurantList = [];
+    var filterRestId = [];
+    if (req.body.categories) {
+      resCond = "WHERE `category_detail`.`categoryId` = " + req.body.categories;
+      restaurantList = await db.query(
+        "SELECT `restaurantId` FROM `category_detail`" +
+          resCond +
+          " GROUP BY `restaurantId`",
+        {
+          type: QueryTypes.SELECT,
+        }
+      );
+
+      for (var i = 0; i < restaurantList.length; i++) {
+        filterRestId.push(restaurantList[i].restaurantId);
+      }
+    } else {
+      restaurantList = await db.query("SELECT `id` FROM `restaurant`", {
+        type: QueryTypes.SELECT,
+      });
+      console.log(restaurantList);
+
+      for (var i = 0; i < restaurantList.length; i++) {
+        filterRestId.push(restaurantList[i].id);
+      }
+    }
+
+    console.log("List:", filterRestId);
+
     const response = await Station.findAll({
       include: {
-        subQuery: false,
+        // subQuery: false,
         model: Restaurant,
         include: [
           {
@@ -203,12 +230,12 @@ export const getNearestRestaurant = async (req, res) => {
             through: {
               attributes: [],
             },
-            where: whereCond,
           },
         ],
         through: {
           attributes: ["walkDistance"],
         },
+        where: { id: filterRestId },
       },
       order: [
         [
