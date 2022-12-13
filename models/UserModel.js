@@ -4,6 +4,7 @@ import Restaurant from "./RestaurantModel.js";
 import Review from "./ReviewModel.js";
 import Wishlist from "./WishlistModel.js";
 import History from "./HistoryModel.js";
+import ForgotPassword from "./ForgotPasswordModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -44,6 +45,9 @@ Restaurant.belongsToMany(User, {
 
 User.hasMany(History, { foreignKey: "userId" });
 History.belongsTo(User, { foreignKey: "userId" });
+
+User.hasOne(ForgotPassword, { foreignKey: "userId" });
+ForgotPassword.belongsTo(User, { foreignKey: "userId" });
 
 Review.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Review, { foreignKey: "userId" });

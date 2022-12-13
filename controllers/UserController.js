@@ -5,6 +5,7 @@ import Wishlist from "../models/WishlistModel.js";
 import History from "../models/HistoryModel.js";
 import Restaurant from "../models/RestaurantModel.js";
 import Category from "../models/CategoryModel.js";
+import ForgotPassword from "../models/ForgotPasswordModel.js";
 
 export const login = async (req, res) => {
   // checks if email exists
@@ -330,3 +331,27 @@ export const getLatestHistory = async (req, res) => {
     res.status(400).json(error.message);
   }
 };
+
+export const requestForgotPassword = async (req, res) => {
+  if (!req.body.email) {
+    return res.status(400).json({ msg: "Email cannot be null" });
+  }
+
+  try {
+    const user = await User.findOne({
+      where: { email: req.body.email },
+    });
+
+    if (!user) return res.status(400).json("Email hasn't registered");
+
+    // await ForgotPassword.create({
+    //   uuid:
+    // })
+
+    return res.status(200).json("Test");
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+};
+
+function generateUUID(userId) {}

@@ -25,6 +25,7 @@ export const addReview = async (req, res) => {
 
   if (req.files) {
     image = req.files.file;
+    console.log(image);
     const fileName = image.name;
     const fileSize = image.size;
     const ext = path.extname(fileName);
