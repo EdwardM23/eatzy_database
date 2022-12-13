@@ -36,9 +36,7 @@ export const login = async (req, res) => {
                 .json({ message: "error while checking user password" });
             } else if (compareRes) {
               // password match
-              const token = jwt.sign({ id: dbUser.id }, "secret", {
-                expiresIn: "1h",
-              });
+              const token = jwt.sign({ id: dbUser.id }, "secret", {});
               res.status(200).json({
                 message: "user logged in",
                 token: token,
