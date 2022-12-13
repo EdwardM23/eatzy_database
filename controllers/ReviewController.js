@@ -20,12 +20,11 @@ export const addReview = async (req, res) => {
   });
 
   if (count > 0) {
-    return res.status(400).json({ msg: "Cannot add review." });
+    //   return res.status(400).json({ msg: "Cannot add review." });
   }
 
   if (req.files) {
     image = req.files.file;
-    console.log(image);
     const fileName = image.name;
     const fileSize = image.size;
     const ext = path.extname(fileName);
@@ -36,6 +35,7 @@ export const addReview = async (req, res) => {
     if (fileSize > 5000000)
       return res.status(422).json({ msg: "Image must be less than 5 MB" });
 
+    return res.status(422).json(req.files);
     try {
       var locaFilePath = image.tempFilePath;
       var result = await uploadToCloudinary(locaFilePath, "review");
