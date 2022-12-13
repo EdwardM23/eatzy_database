@@ -6,7 +6,12 @@ import path from "path";
 import { uploadToCloudinary } from "../Cloudinary.js";
 
 export const addReview = async (req, res) => {
-  const userId = jwt.verify(req.body.token, "secret").id;
+  var userId = 0;
+  try {
+    userId = jwt.verify(req.body.token, "secret").id;
+  } catch (erorr) {
+    return res.status(401).json({ msg: "Invalid token." });
+  }
   const restaurantId = req.body.restaurantId;
   var image;
   var imagePath = "";
