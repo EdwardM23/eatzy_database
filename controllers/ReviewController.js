@@ -29,6 +29,7 @@ export const addReview = async (req, res) => {
     const fileSize = image.size;
     const ext = path.extname(fileName);
     const allowedType = [".png", ".jpg", ".jpeg"];
+    console.log(req.files);
 
     if (!allowedType.includes(ext.toLowerCase()))
       return res.status(422).json({ msg: "Invalid Images" });
