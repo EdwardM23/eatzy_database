@@ -28,6 +28,8 @@ export const getRestaurantById = async (req, res) => {
 export const addRestaurant = async (req, res) => {
   const allowedTypeImage = [".png", ".jpg", ".jpeg"];
   const allowedTypeDoc = [".pdf"];
+  var menuPath = "";
+  var imagePath = "";
 
   // HANDLE GAMBAR
   try {
@@ -50,7 +52,7 @@ export const addRestaurant = async (req, res) => {
         imgFile.tempFilePath,
         "restaurant"
       );
-      var imagePath = imgResult.url;
+      imagePath = imgResult.url;
     } catch (error) {
       res.status(400).json(error.message);
     }
@@ -75,7 +77,7 @@ export const addRestaurant = async (req, res) => {
         menuFile.tempFilePath,
         "menu"
       );
-      var menuPath = menuResult.url;
+      menuPath = menuResult.url;
     } catch (error) {
       return res
         .status(400)
@@ -112,7 +114,7 @@ export const addRestaurant = async (req, res) => {
 
   // ADD RESTAURANT CATEGORIES
 
-  if (req.body.categoryId.length == 1) {
+  if (!Array.isArray(req.body.categoryId)) {
     try {
       await CategoryDetail.create({
         categoryId: req.body.categoryId,
