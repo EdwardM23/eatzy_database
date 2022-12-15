@@ -76,7 +76,6 @@ export const addRestaurant = async (req, res) => {
         "menu"
       );
       var menuPath = menuResult.url;
-      // console.log(menuResult);
     } catch (error) {
       return res
         .status(400)
@@ -93,6 +92,7 @@ export const addRestaurant = async (req, res) => {
   const latitude = req.body.latitude;
   const point = { type: "Point", coordinates: [longitude, latitude] };
   var restaurantId = 2;
+  var restaurant;
   try {
     await Restaurant.create({
       name: req.body.name,
@@ -104,6 +104,7 @@ export const addRestaurant = async (req, res) => {
       schedule: req.body.schedule,
     }).then((response) => {
       restaurantId = response.dataValues.id;
+      restaurant = response;
     });
   } catch (error) {
     return res.status(400).json(error.message);
@@ -111,14 +112,33 @@ export const addRestaurant = async (req, res) => {
 
   // ADD RESTAURANT CATEGORIES
 
-  for (var i = 0; i < req.body.categoryId.length; i++) {
+  if (req.body.categoryId.length == 1) {
     try {
       await CategoryDetail.create({
-        categoryId: req.body.categoryId[i],
+        categoryId: req.body.categoryId,
         restaurantId: restaurantId,
       });
     } catch (error) {
-      return res.status(400).json(error.message);
+      await restaurant.destroy();
+      return res.status(400).json({
+        err: error.message,
+        msg: "Cannot find category with ID " + req.body.categoryId,
+      });
+    }
+  } else {
+    for (var i = 0; i < req.body.categoryId.length; i++) {
+      try {
+        await CategoryDetail.create({
+          categoryId: req.body.categoryId[i],
+          restaurantId: restaurantId,
+        });
+      } catch (error) {
+        await restaurant.destroy();
+        return res.status(400).json({
+          err: error.message,
+          msg: "Cannot find category with ID " + req.body.categoryId[i],
+        });
+      }
     }
   }
 
@@ -137,7 +157,6 @@ export const addRestaurant = async (req, res) => {
         req.body.longitude,
         stationList[i].dataValues.location.coordinates[0]
       );
-      // console.log(req.body.name, stationList[i].dataValues.name, distance1);
       if (distance1 <= 1) {
         const URL =
           "https://api.radar.io/v1/route/distance?origin=" +
@@ -151,13 +170,7 @@ export const addRestaurant = async (req, res) => {
           "&modes=foot&units=metric";
         try {
           await axios.get(URL).then((response) => {
-            // console.log("RESPONSE", response.data.routes.foot.distance.value);
             if (response.data.routes.foot.distance.value <= 1000) {
-              // console.log(
-              //   req.body.name,
-              //   distance1,
-              //   response.data.routes.foot.distance.value
-              // );
               try {
                 RestaurantDetail.create({
                   restaurantId: restaurantId,
@@ -178,7 +191,7 @@ export const addRestaurant = async (req, res) => {
     return res.status(400).json(error.message);
   }
 
-  res.status(201).json({ msg: "New Restaurant has created" });
+  res.status(200).json({ msg: "New Restaurant has created" });
 };
 
 export const getNearestRestaurant = async (req, res) => {
@@ -210,14 +223,11 @@ export const getNearestRestaurant = async (req, res) => {
       restaurantList = await db.query("SELECT `id` FROM `restaurant`", {
         type: QueryTypes.SELECT,
       });
-      console.log(restaurantList);
 
       for (var i = 0; i < restaurantList.length; i++) {
         filterRestId.push(restaurantList[i].id);
       }
     }
-
-    console.log("List:", filterRestId);
 
     const response = await Station.findAll({
       include: {
