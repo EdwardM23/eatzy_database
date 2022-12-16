@@ -61,32 +61,34 @@ export const addRestaurant = async (req, res) => {
   }
 
   // HANDLE FILE MENU
-  try {
-    const menuFile = req.files.menuFile;
-    const menuFileName = menuFile.name;
-    const menuFileSize = menuFile.size;
-    const menuExt = path.extname(menuFileName);
-
-    if (!allowedTypeDoc.includes(menuExt))
-      return res.status(422).json({ msg: "Invalid Menu File" });
-    if (menuFileSize > 5000000)
-      return res.status(422).json({ msg: "Menu must be less than 5 MB" });
-
+  if (req.files.menuFile) {
     try {
-      var menuResult = await uploadDocToCloudinary(
-        menuFile.tempFilePath,
-        "menu"
-      );
-      menuPath = menuResult.url;
+      const menuFile = req.files.menuFile;
+      const menuFileName = menuFile.name;
+      const menuFileSize = menuFile.size;
+      const menuExt = path.extname(menuFileName);
+
+      if (!allowedTypeDoc.includes(menuExt))
+        return res.status(422).json({ msg: "Invalid Menu File" });
+      if (menuFileSize > 5000000)
+        return res.status(422).json({ msg: "Menu must be less than 5 MB" });
+
+      try {
+        var menuResult = await uploadDocToCloudinary(
+          menuFile.tempFilePath,
+          "menu"
+        );
+        menuPath = menuResult.url;
+      } catch (error) {
+        return res
+          .status(400)
+          .json({ msg: error.message, keterangan: "Error upload file menu" });
+      }
     } catch (error) {
       return res
         .status(400)
-        .json({ msg: error.message, keterangan: "Error upload file menu" });
+        .json({ msg: error.message, keterangan: "Error insert file menu" });
     }
-  } catch (error) {
-    return res
-      .status(400)
-      .json({ msg: error.message, keterangan: "Error insert file menu" });
   }
 
   // INSERT DATABASE
