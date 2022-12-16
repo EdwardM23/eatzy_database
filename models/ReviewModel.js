@@ -17,7 +17,7 @@ const Review = db.define(
       type: DataTypes.FLOAT,
     },
     review: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(150),
     },
     isAnonymous: {
       type: DataTypes.BOOLEAN,
