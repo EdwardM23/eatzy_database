@@ -81,3 +81,14 @@ export const getCategoryRestaurant = async (req, res) => {
     res.status(400).json(error.message);
   }
 };
+
+export const getAllCategories = async (req, res) => {
+  try {
+    const response = await Category.findAll({
+      order: [["name", "ASC"]],
+    });
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};

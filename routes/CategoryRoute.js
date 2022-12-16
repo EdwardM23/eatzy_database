@@ -2,6 +2,7 @@ import express from "express";
 import {
   addCategory,
   deleteCategory,
+  getAllCategories,
   getCategoryRestaurant,
   getCuisineCategory,
   getFoodCategory,
@@ -13,6 +14,7 @@ router.post("/category", addCategory);
 router.get("/category/food", getFoodCategory);
 router.get("/category/cuisine", getCuisineCategory);
 router.delete("/category/:id", deleteCategory);
+router.get("/category", getAllCategories);
 router.get("/category-detail", getCategoryRestaurant);
 
 export default router;
