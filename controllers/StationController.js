@@ -3,6 +3,8 @@ import Station from "../models/StationModel.js";
 import { Sequelize } from "sequelize";
 import axios from "axios";
 import { response } from "express";
+import Restaurant from "../models/RestaurantModel.js";
+import RestaurantDetail from "../models/RestaurantDetailModel.js";
 
 export const addStation = async (req, res) => {
   if (!req.body.name)
@@ -26,11 +28,65 @@ export const addStation = async (req, res) => {
   const latitude = req.body.latitude;
   const point = { type: "Point", coordinates: [longitude, latitude] };
   try {
-    await Station.create({
+    const station = await Station.create({
       name: req.body.name,
       location: point,
       stationTypeId: req.body.station_type_id,
     });
+
+    axios.defaults.headers.common["Authorization"] =
+      "prj_test_sk_f6c1041c0d4f9b99a04d93ecc7d94cb757620593";
+    axios.defaults.headers.common["accept-encoding"] = null;
+    console.log("test");
+    try {
+      const restaurantList = await Restaurant.findAll();
+      console.log(restaurantList);
+      for (var i = 0; i < restaurantList.length; i++) {
+        // CHECK DISTANCE BY LONG LAT
+        const distance1 = getLongLatDistance(
+          req.body.latitude,
+          restaurantList[i].dataValues.location.coordinates[1],
+          req.body.longitude,
+          restaurantList[i].dataValues.location.coordinates[0]
+        );
+        console.log("distance1:", distance1);
+        if (distance1 <= 1) {
+          const URL =
+            "https://api.radar.io/v1/route/distance?origin=" +
+            req.body.latitude +
+            "," +
+            req.body.longitude +
+            "&destination=" +
+            restaurantList[i].dataValues.location.coordinates[1] +
+            "," +
+            restaurantList[i].dataValues.location.coordinates[0] +
+            "&modes=foot&units=metric";
+          try {
+            await axios.get(URL).then((response) => {
+              console.log(
+                "walk distance:",
+                response.data.routes.foot.distance.value
+              );
+              if (response.data.routes.foot.distance.value <= 1000) {
+                try {
+                  RestaurantDetail.create({
+                    restaurantId: restaurantList[i].dataValues.id,
+                    stationId: station.id,
+                    walkDistance: response.data.routes.foot.distance.value,
+                  });
+                } catch (error) {
+                  return res.status(400).json(error.message);
+                }
+              }
+            });
+          } catch (error) {
+            return res.status(400).json(error.message);
+          }
+        }
+      }
+    } catch (error) {
+      return res.status(400).json(error.message);
+    }
     res.status(201).json({ msg: "New Station has created" });
   } catch (error) {
     return res.status(400).json(error.message);

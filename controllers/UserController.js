@@ -310,7 +310,7 @@ export const getLatestHistory = async (req, res) => {
   try {
     const response = await History.findAll({
       where: { userId: userId },
-      limit: 8,
+      limit: 10,
       attributes: ["updatedAt"],
       include: [
         {
