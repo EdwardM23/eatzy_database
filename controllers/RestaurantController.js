@@ -210,9 +210,10 @@ export const getNearestRestaurant = async (req, res) => {
     var restaurantList = [];
     var filterRestId = [];
     if (req.body.categories) {
-      resCond = "WHERE `category_detail`.`categoryId` = " + req.body.categories;
+      resCond =
+        "WHERE `category_detail`.`categoryId` IN (" + req.body.categories + ")";
       restaurantList = await db.query(
-        "SELECT `restaurantId` FROM `category_detail`" +
+        "SELECT `restaurantId` FROM `category_detail` " +
           resCond +
           " GROUP BY `restaurantId`",
         {
