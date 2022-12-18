@@ -209,8 +209,11 @@ export const getNearestRestaurant = async (req, res) => {
   try {
     var restaurantList = [];
     var filterRestId = [];
+    console.log("CATEGORIES:", req.body.categories);
+    console.log("NULL:", req.body.categories == null);
     if (req.body.categories) {
-      if (req.body.categories) {
+      console.log("LENGTH:", req.body.categories.length);
+      if (req.body.categories.length) {
         resCond =
           "WHERE `category_detail`.`categoryId` IN (" +
           req.body.categories +
