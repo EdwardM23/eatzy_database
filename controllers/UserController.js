@@ -177,11 +177,42 @@ export const deleteWishlist = async (req, res) => {
     });
 
     if (wishlist === null) {
-      return res.status(400).json({ msg: "Wishlist object not found." });
+      return res.status(400).json({ msg: "Wishlist not found." });
     }
     await wishlist.destroy();
 
     res.status(200).json({ msg: "Wishlist successfully removed." });
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+};
+
+export const getCurrentWishlistStatus = async (req, res) => {
+  var userId = 0;
+  try {
+    userId = jwt.verify(req.body.token, "secret").id;
+  } catch (error) {
+    return res.status(400).json({ msg: "Token expired." });
+  }
+  const restaurantId = req.body.restaurantId;
+
+  if (!userId || !restaurantId) {
+    res.status(400).json({ msg: "Cannot remove wishlist." });
+  }
+
+  try {
+    const wishlist = await Wishlist.findOne({
+      where: {
+        userId: userId,
+        restaurantId: restaurantId,
+      },
+    });
+
+    if (wishlist === null) {
+      return res.status(200).json(false);
+    }
+
+    res.status(200).json(true);
   } catch (error) {
     return res.status(400).json(error.message);
   }

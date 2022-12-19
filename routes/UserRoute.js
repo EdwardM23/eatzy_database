@@ -11,6 +11,7 @@ import {
   addHistory,
   getLatestHistory,
   requestForgotPassword,
+  getCurrentWishlistStatus,
 } from "../controllers/UserController.js";
 
 const router = express.Router();
@@ -22,6 +23,7 @@ router.delete("/user", deleteUser);
 
 router.post("/wishlist", addWishlist);
 router.delete("/wishlist", deleteWishlist);
+router.post("/wishlist/status", getCurrentWishlistStatus);
 
 router.post("/history", addHistory);
 router.get("/history/:token", getLatestHistory);
