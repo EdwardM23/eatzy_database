@@ -275,6 +275,11 @@ export const getNearestRestaurant = async (req, res) => {
 };
 
 export const editRestaurant = async (req, res) => {
+  const allowedTypeImage = [".png", ".jpg", ".jpeg"];
+  const allowedTypeDoc = [".pdf"];
+  var menuPath = "";
+  var imagePath = "";
+
   if (!req.params.id) {
     return res.status(400).json({ msg: "Restaurant id is empty." });
   }
@@ -283,11 +288,109 @@ export const editRestaurant = async (req, res) => {
   if (restaurant === null)
     return res.status(400).json({ msg: "Restaurant not found." });
 
+  if (req.body.categoryId) {
+    try {
+      await CategoryDetail.destroy({
+        where: { restaurantId: req.params.id },
+      }).then(() => {
+        if (!Array.isArray(req.body.categoryId)) {
+          try {
+            CategoryDetail.create({
+              categoryId: req.body.categoryId,
+              restaurantId: req.params.id,
+            });
+          } catch (error) {
+            return res.status(400).json({
+              err: error.message,
+              msg: "Cannot find category with ID " + req.body.categoryId,
+            });
+          }
+        } else {
+          for (var i = 0; i < req.body.categoryId.length; i++) {
+            try {
+              CategoryDetail.create({
+                categoryId: req.body.categoryId[i],
+                restaurantId: req.params.id,
+              });
+            } catch (error) {
+              return res.status(400).json({
+                err: error.message,
+                msg: "Cannot find category with ID " + req.body.categoryId[i],
+              });
+            }
+          }
+        }
+      });
+    } catch (error) {
+      return res.status(400).json(error.message);
+    }
+  }
+
+  if (req.files) {
+    if (req.files.imageFile) {
+      try {
+        const imgFile = req.files.imageFile;
+        const imgFileName = imgFile.name;
+        const imgFileSize = imgFile.size;
+        const imgExt = path.extname(imgFileName);
+
+        if (!allowedTypeImage.includes(imgExt))
+          return res.status(422).json({ msg: "Invalid Image" });
+        if (imgFileSize > 5000000)
+          return res.status(422).json({ msg: "Image must be less than 5 MB" });
+
+        try {
+          var imgResult = await uploadToCloudinary(
+            imgFile.tempFilePath,
+            "restaurant"
+          );
+          imagePath = imgResult.url;
+        } catch (error) {
+          res.status(400).json(error.message);
+        }
+      } catch (error) {
+        return res.status(400).json(error.message);
+      }
+    }
+
+    if (req.files.menuFile) {
+      try {
+        const menuFile = req.files.menuFile;
+        const menuFileName = menuFile.name;
+        const menuFileSize = menuFile.size;
+        const menuExt = path.extname(menuFileName);
+
+        if (!allowedTypeDoc.includes(menuExt))
+          return res.status(422).json({ msg: "Invalid Menu File" });
+        if (menuFileSize > 5000000)
+          return res.status(422).json({ msg: "Menu must be less than 5 MB" });
+
+        try {
+          var menuResult = await uploadDocToCloudinary(
+            menuFile.tempFilePath,
+            "menu"
+          );
+          menuPath = menuResult.url;
+        } catch (error) {
+          return res
+            .status(400)
+            .json({ msg: error.message, keterangan: "Error upload file menu" });
+        }
+      } catch (error) {
+        return res
+          .status(400)
+          .json({ msg: error.message, keterangan: "Error insert file menu" });
+      }
+    }
+  }
+
   try {
     if (req.body.name) restaurant.name = req.body.name;
     if (req.body.address) restaurant.address = req.body.address;
     if (req.body.priceRange) restaurant.priceRange = req.body.priceRange;
     if (req.body.schedule) restaurant.schedule = req.body.schedule;
+    if (menuPath) restaurant.menuURL = menuPath;
+    if (imagePath) restaurant.imageURL = imagePath;
 
     restaurant.save();
     res.status(200).json({ msg: "Restaurant successfully edited." });
