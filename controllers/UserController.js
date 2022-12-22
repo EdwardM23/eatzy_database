@@ -156,6 +156,8 @@ export const getUserInfo = async (req, res) => {
 };
 
 export const deleteWishlist = async (req, res) => {
+  console.log("Token:", req.body.token);
+  console.log("Restaurant Id:", req.body.restaurantId);
   var userId = 0;
   try {
     userId = jwt.verify(req.body.token, "secret").id;
