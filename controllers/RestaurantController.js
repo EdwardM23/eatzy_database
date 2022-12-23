@@ -448,6 +448,24 @@ export const deleteRestaurant = async (req, res) => {
   }
 };
 
+export const deleteRestaurantMenu = async (req, res) => {
+  if (!req.params.id) {
+    return res.status(400).json({ msg: "Restaurant id is empty." });
+  }
+
+  const restaurant = await Restaurant.findByPk(req.params.id);
+  if (restaurant === null)
+    return res.status(400).json({ msg: "Restaurant not found." });
+
+  try {
+    restaurant.menuURL = "";
+    restaurant.save();
+    res.status(200).json({ msg: "Restaurant menu successfully deleted." });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
+
 function getLongLatDistance(lat1, lat2, lon1, lon2) {
   // The math module contains a function
   // named toRadians which converts from
