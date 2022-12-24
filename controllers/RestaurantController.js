@@ -275,11 +275,6 @@ export const getNearestRestaurant = async (req, res) => {
 };
 
 export const editRestaurant = async (req, res) => {
-  const allowedTypeImage = [".png", ".jpg", ".jpeg"];
-  const allowedTypeDoc = [".pdf"];
-  var menuPath = "";
-  var imagePath = "";
-
   if (!req.params.id) {
     return res.status(400).json({ msg: "Restaurant id is empty." });
   }
@@ -288,45 +283,32 @@ export const editRestaurant = async (req, res) => {
   if (restaurant === null)
     return res.status(400).json({ msg: "Restaurant not found." });
 
-  if (req.body.categoryId) {
-    try {
-      await CategoryDetail.destroy({
-        where: { restaurantId: req.params.id },
-      }).then(() => {
-        if (!Array.isArray(req.body.categoryId)) {
-          try {
-            CategoryDetail.create({
-              categoryId: req.body.categoryId,
-              restaurantId: req.params.id,
-            });
-          } catch (error) {
-            return res.status(400).json({
-              err: error.message,
-              msg: "Cannot find category with ID " + req.body.categoryId,
-            });
-          }
-        } else {
-          for (var i = 0; i < req.body.categoryId.length; i++) {
-            try {
-              CategoryDetail.create({
-                categoryId: req.body.categoryId[i],
-                restaurantId: req.params.id,
-              });
-            } catch (error) {
-              return res.status(400).json({
-                err: error.message,
-                msg: "Cannot find category with ID " + req.body.categoryId[i],
-              });
-            }
-          }
-        }
-      });
-    } catch (error) {
-      return res.status(400).json(error.message);
-    }
+  try {
+    if (req.body.name) restaurant.name = req.body.name;
+    if (req.body.address) restaurant.address = req.body.address;
+    if (req.body.priceRange) restaurant.priceRange = req.body.priceRange;
+    if (req.body.schedule) restaurant.schedule = req.body.schedule;
+
+    restaurant.save();
+    res.status(200).json({ msg: "Restaurant successfully edited." });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
+
+export const editRestaurantImage = async (req, res) => {
+  if (!req.params.id) {
+    return res.status(400).json({ msg: "Restaurant id is empty." });
   }
 
-  if (req.files) {
+  const restaurant = await Restaurant.findByPk(req.params.id);
+  if (restaurant === null)
+    return res.status(400).json({ msg: "Restaurant not found." });
+
+  const allowedTypeImage = [".png", ".jpg", ".jpeg"];
+  var imagePath = "";
+
+  try {
     if (req.files.imageFile) {
       try {
         const imgFile = req.files.imageFile;
@@ -351,8 +333,30 @@ export const editRestaurant = async (req, res) => {
       } catch (error) {
         return res.status(400).json(error.message);
       }
-    }
 
+      if (imagePath) restaurant.imageURL = imagePath;
+
+      restaurant.save();
+      res.status(200).json({ msg: "Restaurant image successfully edited." });
+    }
+  } catch (error) {
+    res.status(400).json("Image file not found.");
+  }
+};
+
+export const editRestaurantMenu = async (req, res) => {
+  if (!req.params.id) {
+    return res.status(400).json({ msg: "Restaurant id is empty." });
+  }
+
+  const restaurant = await Restaurant.findByPk(req.params.id);
+  if (restaurant === null)
+    return res.status(400).json({ msg: "Restaurant not found." });
+
+  const allowedTypeDoc = [".pdf"];
+  var menuPath = "";
+
+  try {
     if (req.files.menuFile) {
       try {
         const menuFile = req.files.menuFile;
@@ -376,26 +380,19 @@ export const editRestaurant = async (req, res) => {
             .status(400)
             .json({ msg: error.message, keterangan: "Error upload file menu" });
         }
+
+        if (menuPath) restaurant.menuURL = menuPath;
+
+        restaurant.save();
+        res.status(200).json({ msg: "Restaurant menu successfully edited." });
       } catch (error) {
         return res
           .status(400)
           .json({ msg: error.message, keterangan: "Error insert file menu" });
       }
     }
-  }
-
-  try {
-    if (req.body.name) restaurant.name = req.body.name;
-    if (req.body.address) restaurant.address = req.body.address;
-    if (req.body.priceRange) restaurant.priceRange = req.body.priceRange;
-    if (req.body.schedule) restaurant.schedule = req.body.schedule;
-    if (menuPath) restaurant.menuURL = menuPath;
-    if (imagePath) restaurant.imageURL = imagePath;
-
-    restaurant.save();
-    res.status(200).json({ msg: "Restaurant successfully edited." });
   } catch (error) {
-    res.status(400).json(error.message);
+    res.status(400).json("Menu file not found.");
   }
 };
 
