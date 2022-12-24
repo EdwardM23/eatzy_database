@@ -18,7 +18,16 @@ import User from "../models/UserModel.js";
 
 export const getRestaurantById = async (req, res) => {
   try {
-    const response = await Restaurant.findByPk(req.params.id);
+    const response = await Restaurant.findOne({
+      include: {
+        model: Category,
+        attributes: ["name"],
+        through: {
+          attributes: [],
+        },
+      },
+      where: { id: req.params.id },
+    });
     res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
