@@ -25,4 +25,47 @@ const Category = db.define(
   }
 );
 
+Category.Category = function (name, isFood) {
+  Category.create({
+    name: name,
+    isFood: isFood,
+  });
+};
+
+Category.getCuisineCategory = function () {
+  const categories = Category.findAll({
+    where: {
+      isFood: false,
+    },
+  });
+
+  return categories;
+};
+
+Category.getFoodCategory = function () {
+  const categories = Category.findAll({
+    where: {
+      isFood: true,
+    },
+  });
+
+  return categories;
+};
+
+Category.deleteCategory = function (id) {
+  Category.destroy({
+    where: {
+      id: id,
+    },
+  });
+};
+
+Category.getAllCategories = function () {
+  const categories = Category.findAll({
+    order: [["name", "ASC"]],
+  });
+
+  return categories;
+};
+
 export default Category;
