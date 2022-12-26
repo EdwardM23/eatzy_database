@@ -15,4 +15,26 @@ const Wishlist = db.define(
   }
 );
 
+Wishlist.Wishlist = function (userId, restaurantId) {
+  Wishlist.create({
+    userId: userId,
+    restaurantId: restaurantId,
+  });
+};
+
+Wishlist.checkWishlist = function (userId, restaurantId) {
+  const wishlist = Wishlist.findOne({
+    where: {
+      userId: userId,
+      restaurantId: restaurantId,
+    },
+  });
+
+  return wishlist;
+};
+
+Wishlist.deleteWishlist = function (wishlist) {
+  wishlist.destroy();
+};
+
 export default Wishlist;
