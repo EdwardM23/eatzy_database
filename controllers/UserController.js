@@ -293,13 +293,10 @@ export const addHistory = async (req, res) => {
   }
 
   try {
-    const history = await History.findOne({
-      where: { userId: userId, restaurantId: restaurantId },
-    });
+    const history = await History.checkHistory(userId, restaurantId);
 
     if (history) {
-      history.changed("updatedAt", true);
-      history.save();
+      History.update(history);
       return res.status(200).json({ msg: "History successfully added." });
     }
   } catch (error) {
@@ -307,10 +304,7 @@ export const addHistory = async (req, res) => {
   }
 
   try {
-    const response = await History.create({
-      userId: userId,
-      restaurantId: restaurantId,
-    });
+    const response = await History.History(userId, restaurantId);
     return res.status(200).json({ msg: "History successfully added." });
   } catch (error) {
     return res.status(400).json(error.message);
@@ -324,24 +318,9 @@ export const getLatestHistory = async (req, res) => {
   } catch (error) {
     return res.status(400).json({ msg: "Token expired." });
   }
-
+  console.log("USER ID:", userId);
   try {
-    const response = await History.findAll({
-      where: { userId: userId },
-      limit: 10,
-      attributes: ["updatedAt"],
-      include: [
-        {
-          model: Restaurant,
-          include: {
-            attributes: ["name"],
-            model: Category,
-            through: { attributes: [] },
-          },
-        },
-      ],
-      order: [["updatedAt", "DESC"]],
-    });
+    const response = await History.getLatestHistory(userId);
     res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
