@@ -3,9 +3,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Wishlist from "../models/WishlistModel.js";
 import History from "../models/HistoryModel.js";
-import Restaurant from "../models/RestaurantModel.js";
-import Category from "../models/CategoryModel.js";
-import ForgotPassword from "../models/ForgotPasswordModel.js";
 
 export const loginAdmin = async (req, res) => {
   if (!req.body.email || !req.body.password) {
@@ -14,11 +11,7 @@ export const loginAdmin = async (req, res) => {
       .json({ message: "Email and Password cannot be empty." });
   }
 
-  const user = await User.findOne({
-    where: {
-      email: req.body.email,
-    },
-  });
+  const user = await User.checkUserByEmail(req.body.email);
 
   if (!user) return res.status(400).json({ msg: "User not found." });
 
@@ -55,11 +48,7 @@ export const login = async (req, res) => {
       .json({ message: "Email and Password cannot be empty." });
   }
 
-  User.findOne({
-    where: {
-      email: req.body.email,
-    },
-  })
+  User.checkUserByEmail(req.body.email)
     .then((dbUser) => {
       if (!dbUser) {
         return res.status(404).json({ message: "User not found." });
@@ -97,49 +86,32 @@ export const login = async (req, res) => {
 };
 
 export const register = async (req, res) => {
-  // checks if email already exists
-  User.findOne({
-    where: {
-      email: req.body.email,
-    },
-  })
-    .then((dbUser) => {
-      if (dbUser) {
-        return res.status(409).json({ message: "email already exists" });
-      } else if (req.body.email && req.body.password) {
-        // password hash
-        bcrypt.hash(req.body.password, 12, (err, passwordHash) => {
-          if (err) {
-            return res
-              .status(500)
-              .json({ message: "couldnt hash the password" });
-          } else if (passwordHash) {
-            return User.create({
-              email: req.body.email,
-              username: req.body.username,
-              password: passwordHash,
-              role: "user",
-            })
-              .then(() => {
-                res.status(200).json({ message: "user created" });
-              })
-              .catch((error) => {
-                return res.status(400).json(error.message);
-                res
-                  .status(502)
-                  .json({ message: "error while creating the user" });
-              });
-          }
-        });
-      } else if (!req.body.password) {
-        return res.status(400).json({ message: "password not provided" });
-      } else if (!req.body.email) {
-        return res.status(400).json({ message: "email not provided" });
+  if (!req.body.password) {
+    return res.status(400).json({ message: "Please insert password." });
+  } else if (!req.body.email) {
+    return res.status(400).json({ message: "Please insert email." });
+  }
+
+  const user = await User.checkUserByEmail(req.body.email);
+  if (user)
+    return res.status(400).json({ message: "Email already registered." });
+
+  if (req.body.email && req.body.password) {
+    // password hash
+    bcrypt.hash(req.body.password, 12, (err, passwordHash) => {
+      if (err) {
+        return res.status(500).json({ message: "Couldn't hash password" });
+      } else if (passwordHash) {
+        try {
+          User.User(req.body.email, req.body.username, passwordHash, "user");
+
+          res.status(200).json({ message: "User created." });
+        } catch (error) {
+          res.status(502).json({ message: "Error while creating the user." });
+        }
       }
-    })
-    .catch((error) => {
-      return res.status(400).json(error.message);
     });
+  }
 };
 
 export const addWishlist = async (req, res) => {
@@ -166,27 +138,6 @@ export const addWishlist = async (req, res) => {
     res.status(200).json({ msg: "Wishlist successfully added." });
   } catch (error) {
     res.status(400).json(error.message);
-  }
-};
-
-export const getUserInfo = async (req, res) => {
-  const userId = jwt.verify(req.body.token, "secret").id;
-  const restaurantId = req.body.restaurantId;
-
-  if (!userId || !restaurantId) {
-    res.status(400).json({ msg: "Cannot add wishlist." });
-  }
-
-  try {
-    const response = await Wishlist.destroy({
-      where: {
-        userId: userId,
-        restaurantId: restaurantId,
-      },
-    });
-    res.status(200).json(response);
-  } catch (error) {
-    return res.status(400).json(error.message);
   }
 };
 
@@ -271,7 +222,7 @@ export const isAuth = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const response = await User.findAll();
+    const response = await User.getAllUser();
     res.status(200).json(response);
   } catch (error) {
     return res.status(400).json(error.message);
@@ -283,18 +234,13 @@ export const setAsAdmin = async (req, res) => {
     return res.status(400).json({ msg: "Invalid user ID." });
   }
 
-  const user = await User.findByPk(req.body.id);
+  const user = await User.checkUser(req.body.id);
   if (!user) {
     return res.status(400).json({ msg: "User not found." });
   }
 
   try {
-    const response = await User.update(
-      {
-        role: "admin",
-      },
-      { where: { id: req.body.id } }
-    );
+    await User.setAsAdmin(req.body.id);
     res.status(200).json({ msg: "User successfully registered as admin." });
   } catch (error) {
     res.status(400).json(error);
@@ -306,13 +252,13 @@ export const deleteUser = async (req, res) => {
     return res.status(400).json({ msg: "Invalid user ID." });
   }
 
-  const user = await User.findByPk(req.body.id);
+  const user = await User.checkUser(req.body.id);
   if (!user) {
     return res.status(400).json({ msg: "User not found." });
   }
 
   try {
-    const response = await User.destroy({ where: { id: req.body.id } });
+    await User.deleteUser(req.body.id);
     res.status(200).json({ msg: "User successfully deleted." });
   } catch (error) {
     res.status(400).json(error);
@@ -366,27 +312,3 @@ export const getLatestHistory = async (req, res) => {
     res.status(400).json(error.message);
   }
 };
-
-export const requestForgotPassword = async (req, res) => {
-  if (!req.body.email) {
-    return res.status(400).json({ msg: "Email cannot be null" });
-  }
-
-  try {
-    const user = await User.findOne({
-      where: { email: req.body.email },
-    });
-
-    if (!user) return res.status(400).json("Email hasn't registered");
-
-    // await ForgotPassword.create({
-    //   uuid:
-    // })
-
-    return res.status(200).json("Test");
-  } catch (error) {
-    return res.status(400).json(error.message);
-  }
-};
-
-function generateUUID(userId) {}
