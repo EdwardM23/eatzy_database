@@ -182,11 +182,11 @@ export const addRestaurant = async (req, res) => {
           await axios.get(URL).then((response) => {
             if (response.data.routes.foot.distance.value <= 1000) {
               try {
-                RestaurantDetail.create({
-                  restaurantId: restaurantId,
-                  stationId: stationList[i].dataValues.id,
-                  walkDistance: response.data.routes.foot.distance.value,
-                });
+                RestaurantDetail.RestaurantDetail(
+                  restaurantId,
+                  stationList[i].dataValues.id,
+                  response.data.routes.foot.distance.value
+                );
               } catch (error) {
                 return res.status(400).json({ msg: error.message });
               }

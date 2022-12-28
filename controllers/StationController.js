@@ -69,11 +69,11 @@ export const addStation = async (req, res) => {
               );
               if (response.data.routes.foot.distance.value <= 1000) {
                 try {
-                  RestaurantDetail.create({
-                    restaurantId: restaurantList[i].dataValues.id,
-                    stationId: station.id,
-                    walkDistance: response.data.routes.foot.distance.value,
-                  });
+                  RestaurantDetail.RestaurantDetail(
+                    restaurantList[i].dataValues.id,
+                    station.id,
+                    response.data.routes.foot.distance.value
+                  );
                 } catch (error) {
                   return res.status(400).json(error.message);
                 }
