@@ -12,12 +12,14 @@ import {
   getLatestHistory,
   requestForgotPassword,
   getCurrentWishlistStatus,
+  loginAdmin,
 } from "../controllers/UserController.js";
 
 const router = express.Router();
 
 router.post("/register", register);
 router.post("/login", login);
+router.post("/login/admin", loginAdmin);
 router.patch("/admin", setAsAdmin);
 router.delete("/user", deleteUser);
 

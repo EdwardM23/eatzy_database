@@ -7,6 +7,46 @@ import Restaurant from "../models/RestaurantModel.js";
 import Category from "../models/CategoryModel.js";
 import ForgotPassword from "../models/ForgotPasswordModel.js";
 
+export const loginAdmin = async (req, res) => {
+  if (!req.body.email || !req.body.password) {
+    return res
+      .status(400)
+      .json({ message: "Email and Password cannot be empty." });
+  }
+
+  const user = await User.findOne({
+    where: {
+      email: req.body.email,
+    },
+  });
+
+  if (!user) return res.status(400).json({ msg: "User not found." });
+
+  if (user.role == "admin") {
+    bcrypt.compare(req.body.password, user.password, (err, compareRes) => {
+      if (err) {
+        // error while comparing
+        res
+          .status(502)
+          .json({ message: "Error while checking user password." });
+      } else if (compareRes) {
+        // password match
+        res.status(200).json({
+          message: "User logged in.",
+          id: user.id,
+          username: user.username,
+          email: user.email,
+        });
+      } else {
+        // password doesnt match
+        res.status(401).json({ message: "Invalid credentials" });
+      }
+    });
+  } else {
+    return res.status(400).json({ msg: "User doesn't has admin role." });
+  }
+};
+
 export const login = async (req, res) => {
   // checks if email exists
   if (!req.body.email || !req.body.password) {
@@ -22,7 +62,7 @@ export const login = async (req, res) => {
   })
     .then((dbUser) => {
       if (!dbUser) {
-        return res.status(404).json({ message: "user not found" });
+        return res.status(404).json({ message: "User not found." });
       } else {
         // password hash
         bcrypt.compare(
