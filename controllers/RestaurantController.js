@@ -127,10 +127,7 @@ export const addRestaurant = async (req, res) => {
 
   if (!Array.isArray(req.body.categoryId)) {
     try {
-      await CategoryDetail.create({
-        categoryId: req.body.categoryId,
-        restaurantId: restaurantId,
-      });
+      await CategoryDetail.CategoryDetail(req.body.categoryId, restaurantId);
     } catch (error) {
       await restaurant.destroy();
       return res.status(400).json({
@@ -141,10 +138,10 @@ export const addRestaurant = async (req, res) => {
   } else {
     for (var i = 0; i < req.body.categoryId.length; i++) {
       try {
-        await CategoryDetail.create({
-          categoryId: req.body.categoryId[i],
-          restaurantId: restaurantId,
-        });
+        await CategoryDetail.CategoryDetail(
+          req.body.categoryId[i],
+          restaurantId
+        );
       } catch (error) {
         await restaurant.destroy();
         return res.status(400).json({

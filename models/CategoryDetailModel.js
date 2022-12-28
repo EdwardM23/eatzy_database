@@ -11,4 +11,11 @@ const CategoryDetail = db.define(
   }
 );
 
+CategoryDetail.CategoryDetail = function (categoryId, restaurantId) {
+  CategoryDetail.create({
+    categoryId: categoryId,
+    restaurantId: restaurantId,
+  });
+};
+
 export default CategoryDetail;
