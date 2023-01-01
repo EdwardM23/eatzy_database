@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
-import Station from "./StationModel.js";
+import Station from "./04StationModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -38,10 +38,5 @@ StationType.deleteStationType = function (id) {
     },
   });
 };
-
-StationType.hasMany(Station, {
-  foreignKey: "stationTypeId",
-});
-Station.belongsTo(StationType, { foreignKey: "stationTypeId" });
 
 export default StationType;

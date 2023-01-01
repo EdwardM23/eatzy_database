@@ -1,6 +1,4 @@
-import Category from "../models/CategoryModel.js";
-import db from "../config/Database.js";
-import { QueryTypes } from "sequelize";
+import Category from "../models/02CategoryModel.js";
 
 export const addCategory = async (req, res) => {
   if (!req.body.name) {
@@ -11,10 +9,8 @@ export const addCategory = async (req, res) => {
     res.status(400).json({ msg: "Category option cannot be empty." });
   }
 
-  var category = await Category.findAndCountAll({
-    where: { name: req.body.name },
-  });
-  // console.log(category.count);
+  var category = await Category.checkName(req.body.name);
+
   if (category.count > 0) {
     return res.status(400).json({
       msg: "Category " + req.body.name + " is already exist.",

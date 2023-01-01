@@ -1,7 +1,5 @@
 import Review from "../models/ReviewModel.js";
 import jwt from "jsonwebtoken";
-import { Sequelize } from "sequelize";
-import User from "../models/UserModel.js";
 import path from "path";
 import { uploadToCloudinary } from "../Cloudinary.js";
 

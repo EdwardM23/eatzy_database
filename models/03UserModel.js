@@ -1,10 +1,10 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
-import Restaurant from "./RestaurantModel.js";
+import Restaurant from "./05RestaurantModel.js";
 import Review from "./ReviewModel.js";
 import Wishlist from "./WishlistModel.js";
 import History from "./HistoryModel.js";
-import ForgotPassword from "./ForgotPasswordModel.js";
+import Category from "./02CategoryModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -72,6 +72,26 @@ User.getAllUser = function () {
   return User.findAll();
 };
 
+User.getWishlist = function (id) {
+  return User.findAll({
+    attributes: [],
+    include: [
+      {
+        model: Restaurant,
+        include: {
+          attributes: ["name"],
+          model: Category,
+          through: { attributes: [] },
+        },
+        through: { attributes: [] },
+      },
+    ],
+    where: {
+      id: id,
+    },
+  });
+};
+
 User.belongsToMany(Restaurant, {
   through: Wishlist,
   // uniqueKey: "user_id",
@@ -83,9 +103,6 @@ Restaurant.belongsToMany(User, {
 
 User.hasMany(History, { foreignKey: "userId" });
 History.belongsTo(User, { foreignKey: "userId" });
-
-User.hasOne(ForgotPassword, { foreignKey: "userId" });
-ForgotPassword.belongsTo(User, { foreignKey: "userId" });
 
 Review.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Review, { foreignKey: "userId" });

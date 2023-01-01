@@ -1,4 +1,4 @@
-import User from "../models/UserModel.js";
+import User from "../models/03UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Wishlist from "../models/WishlistModel.js";
@@ -19,11 +19,9 @@ export const loginAdmin = async (req, res) => {
     bcrypt.compare(req.body.password, user.password, (err, compareRes) => {
       if (err) {
         // error while comparing
-        res
-          .status(200)
-          .json({
-            message: "Server Error: Error while checking user password.",
-          });
+        res.status(200).json({
+          message: "Server Error: Error while checking user password.",
+        });
       } else if (compareRes) {
         // password match
         res.status(200).json({

@@ -1,9 +1,8 @@
-import StationType from "../models/StationTypeModel.js";
-import Station from "../models/StationModel.js";
+import StationType from "../models/01StationTypeModel.js";
+import Station from "../models/04StationModel.js";
 import { Sequelize } from "sequelize";
 import axios from "axios";
-import { response } from "express";
-import Restaurant from "../models/RestaurantModel.js";
+import Restaurant from "../models/05RestaurantModel.js";
 import RestaurantDetail from "../models/RestaurantDetailModel.js";
 
 export const addStation = async (req, res) => {
@@ -17,30 +16,29 @@ export const addStation = async (req, res) => {
       msg: "Station location cannot be null.",
     });
   }
-  var stationType = StationType.findByPk(req.body.station_type_id);
-  if (stationType === null) {
+  const stationType = await StationType.checkStationType(
+    req.body.station_type_id
+  );
+
+  if (!stationType) {
     return res.status(404).json({
       msg: `Station Type with id ${req.body.station_type_id} was not found`,
     });
   }
 
-  const longitude = req.body.longitude;
-  const latitude = req.body.latitude;
-  const point = { type: "Point", coordinates: [longitude, latitude] };
   try {
-    const station = await Station.create({
-      name: req.body.name,
-      location: point,
-      stationTypeId: req.body.station_type_id,
-    });
+    const station = await Station.Station(
+      req.body.name,
+      req.body.longitude,
+      req.body.latitude,
+      req.body.station_type_id
+    );
 
     axios.defaults.headers.common["Authorization"] =
       "prj_test_sk_f6c1041c0d4f9b99a04d93ecc7d94cb757620593";
     axios.defaults.headers.common["accept-encoding"] = null;
-    console.log("test");
     try {
-      const restaurantList = await Restaurant.findAll();
-      console.log(restaurantList);
+      const restaurantList = await Restaurant.getAllRestaurant();
       for (var i = 0; i < restaurantList.length; i++) {
         // CHECK DISTANCE BY LONG LAT
         const distance1 = getLongLatDistance(
@@ -68,6 +66,12 @@ export const addStation = async (req, res) => {
                 response.data.routes.foot.distance.value
               );
               if (response.data.routes.foot.distance.value <= 1000) {
+                console.log(
+                  "Res Detail:",
+                  restaurantList[i].dataValues.id,
+                  station.id,
+                  response.data.routes.foot.distance.value
+                );
                 try {
                   RestaurantDetail.RestaurantDetail(
                     restaurantList[i].dataValues.id,
@@ -98,10 +102,7 @@ export const getNearestStation = async (req, res) => {
   const Op = Sequelize.Op;
   if (req.body.keyword) {
     try {
-      const response = await Station.findAll({
-        include: [{ model: StationType }],
-        where: { name: { [Op.substring]: req.body.keyword } },
-      });
+      const response = await Station.getStationByKeyword(req.body.keyword);
       return res.status(200).json(response);
     } catch (error) {
       return res.status(400).json(error.message);
@@ -114,14 +115,11 @@ export const getNearestStation = async (req, res) => {
   axios.defaults.headers.common["accept-encoding"] = null;
 
   try {
-    const stationList = await Station.findAll({
-      include: [{ model: StationType }],
-      where: { name: { [Op.substring]: req.body.keyword } },
-    });
+    const stationList = await Station.getAllStation();
     var filteredList = [];
     for (var i = 0; i < stationList.length; i++) {
       // CHECK DISTANCE BY LONG LAT
-      const distance1 = await getLongLatDistance(
+      const distance1 = getLongLatDistance(
         req.body.latitude,
         stationList[i].dataValues.location.coordinates[1],
         req.body.longitude,
@@ -182,23 +180,18 @@ function getLongLatDistance(lat1, lat2, lon1, lon2) {
   return c * r;
 }
 
-const getWalkDistance = async (lat1, lat2, lon1, lon2) => {};
-
 export const editStation = async (req, res) => {
   if (!req.params.id) {
     return res.status(400).json({ msg: "Station id is empty." });
   }
 
-  const station = await Station.findByPk(req.params.id);
+  const station = await Station.checkStation(req.params.id);
   if (station === null)
     return res.status(400).json({ msg: "Station not found." });
 
   try {
-    if (req.body.name) station.name = req.body.name;
-    if (req.body.station_type_id)
-      station.stationTypeId = req.body.station_type_id;
+    Station.editStation(station, req.body.name, req.body.station_type_id);
 
-    station.save();
     res.status(200).json({ msg: "Station successfully edited." });
   } catch (error) {
     res.status(400).json(error.message);
@@ -207,7 +200,7 @@ export const editStation = async (req, res) => {
 
 export const getStationById = async (req, res) => {
   try {
-    const response = await Station.findByPk(req.params.id);
+    const response = await Station.checkStation(req.params.id);
     res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
@@ -215,16 +208,12 @@ export const getStationById = async (req, res) => {
 };
 
 export const deleteStation = async (req, res) => {
-  const station = await Station.findByPk(req.params.id);
+  const station = await Station.checkStation(req.params.id);
   if (station === null)
     return res.status(400).json({ msg: "Station not found." });
 
   try {
-    const response = await Station.destroy({
-      where: {
-        id: req.params.id,
-      },
-    });
+    const response = await Station.deleteStation(req.params.id);
     res.status(200).json({ msg: "Station successfully deleted." });
   } catch (error) {
     res.status(400).json(error.message);
@@ -233,9 +222,7 @@ export const deleteStation = async (req, res) => {
 
 export const getAllStation = async (req, res) => {
   try {
-    const response = await Station.findAll({
-      include: [{ model: StationType }],
-    });
+    const response = await Station.getAllStation();
     res.status(200).json(response);
   } catch (error) {
     return res.status(400).json(error.message);

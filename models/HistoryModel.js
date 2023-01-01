@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
-import Category from "./CategoryModel.js";
-import Restaurant from "./RestaurantModel.js";
+import Category from "./02CategoryModel.js";
+import Restaurant from "./05RestaurantModel.js";
 
 const { DataTypes } = Sequelize;
 
