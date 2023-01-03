@@ -25,7 +25,6 @@ RestaurantDetail.RestaurantDetail = function (
     stationId: stationId,
     walkDistance: walkDistance,
   });
-  console.log("GET", restaurantId, stationId, walkDistance);
 };
 
 export default RestaurantDetail;

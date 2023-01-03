@@ -32,4 +32,7 @@ router.get("/history/:token", getLatestHistory);
 router.get("/auth/:token", isAuth);
 router.get("/user", getUsers);
 
+// router.post("/forgot-password", requestForgotPassword);
+// router.get("/users/:id", getUserById);
+
 export default router;

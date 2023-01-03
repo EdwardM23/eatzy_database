@@ -1,4 +1,4 @@
-import StationType from "../models/01StationTypeModel.js";
+import StationType from "../models/StationTypeModel.js";
 import path from "path";
 import { uploadToCloudinary } from "../Cloudinary.js";
 

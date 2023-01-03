@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
 import CategoryDetail from "./CategoryDetailModel.js";
-import Restaurant from "./05RestaurantModel.js";
+import Restaurant from "./RestaurantModel.js";
 
 const { DataTypes } = Sequelize;
 
@@ -29,12 +29,6 @@ Category.Category = function (name, isFood) {
   Category.create({
     name: name,
     isFood: isFood,
-  });
-};
-
-Category.checkName = function (name) {
-  return Category.findAndCountAll({
-    where: { name: name },
   });
 };
 

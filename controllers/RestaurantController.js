@@ -1,18 +1,33 @@
-import Restaurant from "../models/05RestaurantModel.js";
+import Restaurant from "../models/RestaurantModel.js";
 import path from "path";
 import jwt from "jsonwebtoken";
 import { uploadToCloudinary, uploadDocToCloudinary } from "../Cloudinary.js";
 import RestaurantDetail from "../models/RestaurantDetailModel.js";
+import { response } from "express";
 import axios from "axios";
+import db from "../config/Database.js";
+import { QueryTypes } from "sequelize";
 
 import CategoryDetail from "../models/CategoryDetailModel.js";
-import Station from "../models/04StationModel.js";
-import { Sequelize } from "sequelize";
-import User from "../models/03UserModel.js";
+import Station from "../models/StationModel.js";
+import Review from "../models/ReviewModel.js";
+import { Sequelize, where } from "sequelize";
+import Category from "../models/CategoryModel.js";
+import Wishlist from "../models/WishlistModel.js";
+import User from "../models/UserModel.js";
 
 export const getRestaurantById = async (req, res) => {
   try {
-    const response = await Restaurant.getRestaurantInfo(req.params.id);
+    const response = await Restaurant.findOne({
+      include: {
+        model: Category,
+        attributes: ["name"],
+        through: {
+          attributes: [],
+        },
+      },
+      where: { id: req.params.id },
+    });
     res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
@@ -86,20 +101,24 @@ export const addRestaurant = async (req, res) => {
   }
 
   // INSERT DATABASE
-  var restaurantId;
+  const longitude = req.body.longitude;
+  const latitude = req.body.latitude;
+  const point = { type: "Point", coordinates: [longitude, latitude] };
+  var restaurantId = 2;
   var restaurant;
   try {
-    restaurant = await Restaurant.Restaurant(
-      req.body.name,
-      req.body.longitude,
-      req.body.latitude,
-      menuPath,
-      req.body.address,
-      imagePath,
-      req.body.priceRange,
-      req.body.schedule
-    );
-    restaurantId = restaurant.id;
+    await Restaurant.create({
+      name: req.body.name,
+      location: point,
+      menuURL: menuPath,
+      address: req.body.address,
+      imageURL: imagePath,
+      priceRange: req.body.priceRange,
+      schedule: req.body.schedule,
+    }).then((response) => {
+      restaurantId = response.dataValues.id;
+      restaurant = response;
+    });
   } catch (error) {
     return res.status(400).json(error.message);
   }
@@ -110,7 +129,7 @@ export const addRestaurant = async (req, res) => {
     try {
       await CategoryDetail.CategoryDetail(req.body.categoryId, restaurantId);
     } catch (error) {
-      await Restaurant.deleteRestaurant(restaurant);
+      await restaurant.destroy();
       return res.status(400).json({
         err: error.message,
         msg: "Cannot find category with ID " + req.body.categoryId,
@@ -124,7 +143,7 @@ export const addRestaurant = async (req, res) => {
           restaurantId
         );
       } catch (error) {
-        await Restaurant.deleteRestaurant(restaurant);
+        await restaurant.destroy();
         return res.status(400).json({
           err: error.message,
           msg: "Cannot find category with ID " + req.body.categoryId[i],
@@ -139,7 +158,7 @@ export const addRestaurant = async (req, res) => {
   axios.defaults.headers.common["accept-encoding"] = null;
 
   try {
-    const stationList = await Station.getAllStation();
+    const stationList = await Station.findAll();
     for (var i = 0; i < stationList.length; i++) {
       // CHECK DISTANCE BY LONG LAT
       const distance1 = getLongLatDistance(
@@ -196,31 +215,64 @@ export const getNearestRestaurant = async (req, res) => {
   try {
     var restaurantList = [];
     var filterRestId = [];
-
+    console.log("CATEGORIES:", req.body.categories);
+    console.log("NULL:", req.body.categories == null);
     if (req.body.categories) {
+      console.log("LENGTH:", req.body.categories.length);
       if (req.body.categories.length) {
         resCond =
           "WHERE `category_detail`.`categoryId` IN (" +
           req.body.categories +
           ")";
       }
-      restaurantList = await Restaurant.filterMultipleCategories(resCond);
+      restaurantList = await db.query(
+        "SELECT `restaurantId` FROM `category_detail` " +
+          resCond +
+          " GROUP BY `restaurantId`",
+        {
+          type: QueryTypes.SELECT,
+        }
+      );
 
       for (var i = 0; i < restaurantList.length; i++) {
         filterRestId.push(restaurantList[i].restaurantId);
       }
     } else {
-      restaurantList = await Restaurant.getAllRestaurantId();
+      restaurantList = await db.query("SELECT `id` FROM `restaurant`", {
+        type: QueryTypes.SELECT,
+      });
 
       for (var i = 0; i < restaurantList.length; i++) {
         filterRestId.push(restaurantList[i].id);
       }
     }
 
-    const response = await Restaurant.getNearestRestaurant(
-      filterRestId,
-      req.params.stationId
-    );
+    const response = await Station.findAll({
+      include: {
+        // subQuery: false,
+        model: Restaurant,
+        include: [
+          {
+            model: Category,
+            attributes: ["name"],
+            through: {
+              attributes: [],
+            },
+          },
+        ],
+        through: {
+          attributes: ["walkDistance"],
+        },
+        where: { id: filterRestId },
+      },
+      order: [
+        [
+          Sequelize.literal("`restaurants->restaurant_detail`.`walkDistance`"),
+          "ASC",
+        ],
+      ],
+      where: { id: req.params.stationId },
+    });
 
     res.status(200).json(response);
   } catch (error) {
@@ -233,18 +285,17 @@ export const editRestaurant = async (req, res) => {
     return res.status(400).json({ msg: "Restaurant id is empty." });
   }
 
-  const restaurant = await Restaurant.checkRestaurant(req.params.id);
+  const restaurant = await Restaurant.findByPk(req.params.id);
   if (restaurant === null)
     return res.status(400).json({ msg: "Restaurant not found." });
 
   try {
-    await Restaurant.updateRestaurantInfo(
-      restaurant,
-      req.body.name,
-      req.body.address,
-      req.body.priceRange,
-      req.body.schedule
-    );
+    if (req.body.name) restaurant.name = req.body.name;
+    if (req.body.address) restaurant.address = req.body.address;
+    if (req.body.priceRange) restaurant.priceRange = req.body.priceRange;
+    if (req.body.schedule) restaurant.schedule = req.body.schedule;
+
+    restaurant.save();
     res.status(200).json({ msg: "Restaurant successfully edited." });
   } catch (error) {
     res.status(400).json(error.message);
@@ -256,7 +307,7 @@ export const editRestaurantImage = async (req, res) => {
     return res.status(400).json({ msg: "Restaurant id is empty." });
   }
 
-  const restaurant = await Restaurant.checkRestaurant(req.params.id);
+  const restaurant = await Restaurant.findByPk(req.params.id);
   if (restaurant === null)
     return res.status(400).json({ msg: "Restaurant not found." });
 
@@ -289,7 +340,9 @@ export const editRestaurantImage = async (req, res) => {
         return res.status(400).json(error.message);
       }
 
-      await Restaurant.updateImage(restaurant, imagePath);
+      if (imagePath) restaurant.imageURL = imagePath;
+
+      restaurant.save();
       res.status(200).json({ msg: "Restaurant image successfully edited." });
     }
   } catch (error) {
@@ -302,7 +355,7 @@ export const editRestaurantMenu = async (req, res) => {
     return res.status(400).json({ msg: "Restaurant id is empty." });
   }
 
-  const restaurant = await Restaurant.checkRestaurant(req.params.id);
+  const restaurant = await Restaurant.findByPk(req.params.id);
   if (restaurant === null)
     return res.status(400).json({ msg: "Restaurant not found." });
 
@@ -334,8 +387,9 @@ export const editRestaurantMenu = async (req, res) => {
             .json({ msg: error.message, keterangan: "Error upload file menu" });
         }
 
-        await Restaurant.updateMenu(restaurant, menuPath);
+        if (menuPath) restaurant.menuURL = menuPath;
 
+        restaurant.save();
         res.status(200).json({ msg: "Restaurant menu successfully edited." });
       } catch (error) {
         return res
@@ -350,7 +404,7 @@ export const editRestaurantMenu = async (req, res) => {
 
 export const getAllRestaurant = async (req, res) => {
   try {
-    const response = await Restaurant.getAllRestaurant();
+    const response = await Restaurant.findAll();
     res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
@@ -361,7 +415,23 @@ export const getAllRestaurantInWishlist = async (req, res) => {
   const userId = jwt.verify(req.params.token, "secret").id;
 
   try {
-    const response = await User.getWishlist(userId);
+    const response = await User.findAll({
+      attributes: [],
+      include: [
+        {
+          model: Restaurant,
+          include: {
+            attributes: ["name"],
+            model: Category,
+            through: { attributes: [] },
+          },
+          through: { attributes: [] },
+        },
+      ],
+      where: {
+        id: userId,
+      },
+    });
     res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
@@ -370,9 +440,11 @@ export const getAllRestaurantInWishlist = async (req, res) => {
 
 export const deleteRestaurant = async (req, res) => {
   try {
-    const restaurant = await Restaurant.checkRestaurant(req.params.id);
-
-    await Restaurant.deleteRestaurant(restaurant);
+    const response = await Restaurant.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
     res.status(200).json({ msg: "Restaurant successfully deleted." });
   } catch (error) {
     res.status(400).json(error.message);
@@ -384,12 +456,13 @@ export const deleteRestaurantMenu = async (req, res) => {
     return res.status(400).json({ msg: "Restaurant id is empty." });
   }
 
-  const restaurant = await Restaurant.checkRestaurant(req.params.id);
+  const restaurant = await Restaurant.findByPk(req.params.id);
   if (restaurant === null)
     return res.status(400).json({ msg: "Restaurant not found." });
 
   try {
-    await Restaurant.updateMenu(restaurant, "");
+    restaurant.menuURL = "";
+    restaurant.save();
     res.status(200).json({ msg: "Restaurant menu successfully deleted." });
   } catch (error) {
     res.status(400).json(error.message);
