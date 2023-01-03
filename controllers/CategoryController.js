@@ -22,16 +22,23 @@ export const addCategory = async (req, res) => {
   }
 
   try {
-    await Category.Category(req.body.name, req.body.isFood);
-    return res.status(200).json({ msg: "New Food Category has created" });
+    await Category.create({
+      name: req.body.name,
+      isFood: req.body.isFood,
+    });
+    res.status(200).json({ msg: "New Food Category has created" });
   } catch (error) {
-    return res.status(400).json(error.message);
+    res.status(400).json(error.message);
   }
 };
 
 export const getFoodCategory = async (req, res) => {
   try {
-    const response = await Category.getFoodCategory();
+    const response = await Category.findAll({
+      where: {
+        isFood: true,
+      },
+    });
     res.status(200).json(response);
   } catch (error) {
     return res.status(400).json(error);
@@ -40,7 +47,11 @@ export const getFoodCategory = async (req, res) => {
 
 export const getCuisineCategory = async (req, res) => {
   try {
-    const response = await Category.getCuisineCategory();
+    const response = await Category.findAll({
+      where: {
+        isFood: false,
+      },
+    });
     res.status(200).json(response);
   } catch (error) {
     return res.status(400).json(error);
@@ -49,8 +60,23 @@ export const getCuisineCategory = async (req, res) => {
 
 export const deleteCategory = async (req, res) => {
   try {
-    const response = await Category.deleteCategory(req.params.id);
+    const response = await Category.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
     res.status(200).json({ msg: "Category successfully deleted." });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+};
+
+export const getCategoryRestaurant = async (req, res) => {
+  try {
+    const response = await db.query("SELECT * FROM category_detail", {
+      type: QueryTypes.SELECT,
+    });
+    res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
   }
@@ -58,7 +84,9 @@ export const deleteCategory = async (req, res) => {
 
 export const getAllCategories = async (req, res) => {
   try {
-    const response = await Category.getAllCategories();
+    const response = await Category.findAll({
+      order: [["name", "ASC"]],
+    });
     res.status(200).json(response);
   } catch (error) {
     res.status(400).json(error.message);
