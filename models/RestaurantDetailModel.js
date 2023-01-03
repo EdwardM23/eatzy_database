@@ -15,16 +15,4 @@ const RestaurantDetail = db.define(
   }
 );
 
-RestaurantDetail.RestaurantDetail = function (
-  restaurantId,
-  stationId,
-  walkDistance
-) {
-  RestaurantDetail.create({
-    restaurantId: restaurantId,
-    stationId: stationId,
-    walkDistance: walkDistance,
-  });
-};
-
 export default RestaurantDetail;
