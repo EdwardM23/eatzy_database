@@ -34,44 +34,6 @@ const User = db.define(
   }
 );
 
-User.User = function (email, username, password, role) {
-  User.create({
-    email: email,
-    username: username,
-    password: password,
-    role: role,
-  });
-};
-
-User.checkUserByEmail = function (email) {
-  return User.findOne({
-    where: {
-      email: email,
-    },
-  });
-};
-
-User.checkUser = function (id) {
-  return User.findByPk(id);
-};
-
-User.setAsAdmin = function (id) {
-  User.update(
-    {
-      role: "admin",
-    },
-    { where: { id: id } }
-  );
-};
-
-User.deleteUser = function (id) {
-  User.destroy({ where: { id: id } });
-};
-
-User.getAllUser = function () {
-  return User.findAll();
-};
-
 User.belongsToMany(Restaurant, {
   through: Wishlist,
   // uniqueKey: "user_id",
