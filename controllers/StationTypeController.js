@@ -32,7 +32,10 @@ export const addStationType = async (req, res) => {
   }
 
   try {
-    await StationType.StationType(req.body.name, imagePath);
+    await StationType.create({
+      name: req.body.name,
+      image: imagePath,
+    });
     res.status(201).json({ msg: "New Station Type has created" });
   } catch (error) {
     return res.status(400).json(error.message);
@@ -45,14 +48,19 @@ export const deleteStationType = async (req, res) => {
       msg: "Station Type id cannot be null.",
     });
 
-  const sc = await StationType.checkStationType(req.params.id);
-  console.log(sc);
+  let sc = StationType.findByPk(req.params.id);
   if (!sc) {
-    return res.status(400).json({ msg: `Station Type not found` });
+    return res
+      .status(404)
+      .json({ msg: `Station Type with id ${id} was not found` });
   }
 
   try {
-    await StationType.deleteStationType(req.params.id);
+    await StationType.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
     res.status(201).json({ msg: "Station Type has deleted" });
   } catch (error) {
     return res.status(400).json(error.message);
@@ -61,7 +69,7 @@ export const deleteStationType = async (req, res) => {
 
 export const getAllStationType = async (req, res) => {
   try {
-    const response = await StationType.getAllStationType();
+    const response = await StationType.findAll();
     res.status(200).json(response);
   } catch (error) {
     return res.status(400).json(error.message);

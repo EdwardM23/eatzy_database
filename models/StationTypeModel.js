@@ -16,29 +16,6 @@ const StationType = db.define(
   }
 );
 
-StationType.StationType = function (name, imagePath) {
-  StationType.create({
-    name: name,
-    image: imagePath,
-  });
-};
-
-StationType.getAllStationType = function () {
-  return StationType.findAll();
-};
-
-StationType.checkStationType = function (id) {
-  return StationType.findByPk(id);
-};
-
-StationType.deleteStationType = function (id) {
-  StationType.destroy({
-    where: {
-      id: id,
-    },
-  });
-};
-
 StationType.hasMany(Station, {
   foreignKey: "stationTypeId",
 });
