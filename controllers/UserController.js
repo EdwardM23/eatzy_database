@@ -155,14 +155,19 @@ export const addWishlist = async (req, res) => {
     res.status(400).json({ msg: "Cannot add wishlist." });
   }
 
-  const wishlist = await Wishlist.checkWishlist(userId, restaurantId);
+  const count = await Wishlist.count({
+    where: { userId: userId, restaurantId: restaurantId },
+  });
 
-  if (wishlist) {
+  if (count > 0) {
     res.status(403).json({ msg: "Cannot add wishlist." });
   }
 
   try {
-    const response = await Wishlist.Wishlist(userId, restaurantId);
+    const response = await Wishlist.create({
+      userId: userId,
+      restaurantId: restaurantId,
+    });
     res.status(200).json({ msg: "Wishlist successfully added." });
   } catch (error) {
     res.status(400).json(error.message);
@@ -206,12 +211,17 @@ export const deleteWishlist = async (req, res) => {
   }
 
   try {
-    const wishlist = await Wishlist.checkWishlist(userId, restaurantId);
+    const wishlist = await Wishlist.findOne({
+      where: {
+        userId: userId,
+        restaurantId: restaurantId,
+      },
+    });
 
     if (wishlist === null) {
       return res.status(400).json({ msg: "Wishlist not found." });
     }
-    await Wishlist.deleteWishlist(wishlist);
+    await wishlist.destroy();
 
     res.status(200).json({ msg: "Wishlist successfully removed." });
   } catch (error) {
@@ -233,7 +243,12 @@ export const getCurrentWishlistStatus = async (req, res) => {
   }
 
   try {
-    const wishlist = await Wishlist.checkWishlist(userId, restaurantId);
+    const wishlist = await Wishlist.findOne({
+      where: {
+        userId: userId,
+        restaurantId: restaurantId,
+      },
+    });
 
     if (wishlist === null) {
       return res.status(200).json(false);
