@@ -4,6 +4,7 @@ import { Sequelize } from "sequelize";
 import User from "../models/UserModel.js";
 import path from "path";
 import { uploadToCloudinary } from "../Cloudinary.js";
+import Restaurant from "../models/RestaurantModel.js";
 
 export const addReview = async (req, res) => {
   var userId = 0;
@@ -110,6 +111,27 @@ export const getReviewByRestaurantId = async (req, res) => {
     });
 
     // Sequelize.query("SELECT ")
+    res.status(200).json(response);
+  } catch (error) {
+    return res.status(400).json(error.message);
+  }
+};
+
+export const getReviewByUserId = async (req, res) => {
+  if (req.params.userId == 0) {
+    return res.status(400).json({ msg: "User Id cannot be empty." });
+  }
+
+  try {
+    const response = await Review.findAll({
+      attributes: ["id", "review", "rating", "imageURL", "review", "createdAt"],
+      include: {
+        model: Restaurant,
+        attributes: ["name"],
+      },
+      where: { userId: req.params.userId },
+    });
+
     res.status(200).json(response);
   } catch (error) {
     return res.status(400).json(error.message);

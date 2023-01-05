@@ -29,7 +29,7 @@ app.use(ReviewRoute);
 app.use(CategoryRoute);
 
 (async () => {
-  await db.sync({ alter: true, force: false });
+  await db.sync({ alter: false, force: false });
 })();
 
 cloudinary.config({
