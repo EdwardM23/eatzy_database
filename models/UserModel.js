@@ -28,6 +28,11 @@ const User = db.define(
     role: {
       type: DataTypes.STRING(5),
     },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+    },
   },
   {
     freezeTableName: true,
