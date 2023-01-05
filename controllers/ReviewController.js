@@ -106,6 +106,7 @@ export const getReviewByRestaurantId = async (req, res) => {
           "username",
         ],
       ],
+      order: [["createdAt", "DESC"]],
     });
 
     // Sequelize.query("SELECT ")
