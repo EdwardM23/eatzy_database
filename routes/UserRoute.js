@@ -13,6 +13,7 @@ import {
   requestForgotPassword,
   getCurrentWishlistStatus,
   loginAdmin,
+  deactivateUser,
 } from "../controllers/UserController.js";
 
 const router = express.Router();
@@ -32,6 +33,7 @@ router.get("/history/:token", getLatestHistory);
 
 router.get("/auth/:token", isAuth);
 router.get("/user", getUsers);
+router.patch("/user/deactivate/:id", deactivateUser);
 
 router.post("/forgot-password", requestForgotPassword);
 // router.get("/users/:id", getUserById);

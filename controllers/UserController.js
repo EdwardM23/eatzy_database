@@ -403,6 +403,21 @@ export const getLatestHistory = async (req, res) => {
   }
 };
 
+export const deactivateUser = async (req, res) => {
+  if (!req.params.id) return res.status(200).json({ msg: "User id is empty." });
+
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(200).json({ msg: "User not found." });
+
+    user.deletedAt = new Date();
+    user.save();
+    return res.status(200).json({ msg: "User successfully deactivated." });
+  } catch (error) {
+    return res.status(200).json({ msg: "Failed to deactivate user." });
+  }
+};
+
 export const requestForgotPassword = async (req, res) => {
   if (!req.body.email) {
     return res.status(400).json({ msg: "Email cannot be null" });
