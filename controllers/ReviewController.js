@@ -26,8 +26,19 @@ export const addReview = async (req, res) => {
   });
 
   if (count > 0) {
-    //   return res.status(400).json({ msg: "Cannot add review." });
+    return res
+      .status(400)
+      .json({ msg: "You've already post a review for this restaurant." });
   }
+
+  const activeUser = await User.findOne({
+    where: { id: userId, deletedAt: null },
+  });
+  console.log("DEATIVATED USER:", activeUser);
+  if (!activeUser)
+    return res
+      .status(400)
+      .json({ msg: "Cannot add review. This account has been deactivated." });
 
   if (req.files) {
     image = req.files.file;
@@ -92,7 +103,7 @@ export const getReviewByRestaurantId = async (req, res) => {
   try {
     const response = await Review.findAndCountAll({
       where: { restaurantId: req.params.restaurantId },
-      include: User,
+      include: { model: User, where: { deletedAt: null } },
       attributes: [
         "id",
         "review",
@@ -182,11 +193,15 @@ export const getTopReview = async (req, res) => {
         ],
       ],
       where: { restaurantId: req.params.restaurantId },
-      order: [["rating", "DESC"]],
+      order: [
+        ["rating", "DESC"],
+        ["createdAt", "DESC"],
+      ],
       limit: 2,
       include: {
         model: User,
         attributes: [],
+        where: { deletedAt: null },
       },
     });
     res.status(200).json(response);
@@ -206,6 +221,7 @@ export const getOverallRating = async (req, res) => {
         [Sequelize.fn("AVG", Sequelize.col("rating")), "averageRating"],
         [Sequelize.fn("COUNT", Sequelize.col("rating")), "countReview"],
       ],
+      include: { model: User, attributes: [], where: { deletedAt: null } },
       where: { restaurantId: req.params.restaurantId },
     });
     res.status(200).json(response);
