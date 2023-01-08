@@ -65,9 +65,9 @@ export const login = async (req, res) => {
         return res.status(404).json({ message: "User not found." });
       } else {
         if (dbUser.deletedAt) {
-          // return res
-          //   .status(400)
-          //   .json({ message: "This account has been deactivated." });
+          return res
+            .status(400)
+            .json({ message: "This account has been deactivated." });
         }
         // password hash
         bcrypt.compare(
