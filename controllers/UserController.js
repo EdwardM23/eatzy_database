@@ -110,7 +110,7 @@ export const register = async (req, res) => {
   })
     .then((dbUser) => {
       if (dbUser) {
-        return res.status(409).json({ message: "email already exists" });
+        return res.status(409).json({ message: "Email already registered." });
       } else if (req.body.email && req.body.password) {
         // password hash
         bcrypt.hash(req.body.password, 12, (err, passwordHash) => {
@@ -126,20 +126,19 @@ export const register = async (req, res) => {
               role: "user",
             })
               .then(() => {
-                res.status(200).json({ message: "user created" });
+                res
+                  .status(200)
+                  .json({ message: "Account successfully created." });
               })
               .catch((error) => {
                 return res.status(400).json(error.message);
-                res
-                  .status(502)
-                  .json({ message: "error while creating the user" });
               });
           }
         });
       } else if (!req.body.password) {
-        return res.status(400).json({ message: "password not provided" });
+        return res.status(400).json({ message: "Password not provided" });
       } else if (!req.body.email) {
-        return res.status(400).json({ message: "email not provided" });
+        return res.status(400).json({ message: "Email not provided" });
       }
     })
     .catch((error) => {
