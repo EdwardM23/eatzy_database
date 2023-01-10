@@ -127,7 +127,7 @@ export const register = async (req, res) => {
       const checkEmail = await axios.request(options);
       console.log(checkEmail.data.response.email_status);
       if (checkEmail.data.response.email_status == "No") {
-        return res.status(400).json({ message: "Invalid email address." });
+        return res.status(400).json({ message: "Email doesn't exist." });
       }
     } catch (error) {
       return res.status(500).json(error.message);
