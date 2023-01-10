@@ -5,7 +5,7 @@ import Wishlist from "../models/WishlistModel.js";
 import History from "../models/HistoryModel.js";
 import Restaurant from "../models/RestaurantModel.js";
 import Category from "../models/CategoryModel.js";
-import ForgotPassword from "../models/ForgotPasswordModel.js";
+import axios from "axios";
 
 export const loginAdmin = async (req, res) => {
   if (!req.body.email || !req.body.password) {
@@ -103,47 +103,60 @@ export const login = async (req, res) => {
 
 export const register = async (req, res) => {
   // checks if email already exists
-  User.findOne({
+  const user = await User.findOne({
     where: {
       email: req.body.email,
     },
-  })
-    .then((dbUser) => {
-      if (dbUser) {
-        return res.status(409).json({ message: "Email already registered." });
-      } else if (req.body.email && req.body.password) {
-        // password hash
-        bcrypt.hash(req.body.password, 12, (err, passwordHash) => {
-          if (err) {
-            return res
-              .status(500)
-              .json({ message: "couldnt hash the password" });
-          } else if (passwordHash) {
-            return User.create({
-              email: req.body.email,
-              username: req.body.username,
-              password: passwordHash,
-              role: "user",
-            })
-              .then(() => {
-                res
-                  .status(200)
-                  .json({ message: "Account successfully created." });
-              })
-              .catch((error) => {
-                return res.status(400).json(error.message);
-              });
-          }
-        });
-      } else if (!req.body.password) {
-        return res.status(400).json({ message: "Password not provided" });
-      } else if (!req.body.email) {
-        return res.status(400).json({ message: "Email not provided" });
+  });
+
+  if (user) {
+    return res.status(400).json({ message: "Email already registered." });
+  } else if (req.body.email && req.body.password) {
+    const options = {
+      method: "GET",
+      url:
+        "https://email-verifier-completely-free.p.rapidapi.com/email-verification/" +
+        req.body.email,
+      headers: {
+        "X-RapidAPI-Key": "89ae0ba075msh93d54cb9e983b9bp105311jsn380db6706bb4",
+        "X-RapidAPI-Host": "email-verifier-completely-free.p.rapidapi.com",
+      },
+    };
+
+    try {
+      const checkEmail = await axios.request(options);
+      console.log(checkEmail.data.response.email_status);
+      if (checkEmail.data.response.email_status == "No") {
+        return res.status(400).json({ message: "Invalid email address." });
       }
-    })
-    .catch((error) => {
-      return res.status(400).json(error.message);
+    } catch (error) {
+      return res.status(500).json(error.message);
+    }
+
+    // password hash
+    bcrypt.hash(req.body.password, 12, (err, passwordHash) => {
+      if (err) {
+        return res.status(500).json({ message: "couldnt hash the password" });
+      } else if (passwordHash) {
+        return User.create({
+          email: req.body.email,
+          username: req.body.username,
+          password: passwordHash,
+          role: "user",
+        })
+          .then(() => {
+            res.status(200).json({ message: "Account successfully created." });
+          })
+          .catch((error) => {
+            return res.status(400).json(error.message);
+          });
+      }
     });
+  } else if (!req.body.password) {
+    return res.status(400).json({ message: "Password not provided" });
+  } else if (!req.body.email) {
+    return res.status(400).json({ message: "Email not provided" });
+  }
 };
 
 export const addWishlist = async (req, res) => {
