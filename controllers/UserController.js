@@ -20,7 +20,7 @@ export const loginAdmin = async (req, res) => {
     },
   });
 
-  if (!user) return res.status(400).json({ msg: "User not found." });
+  if (!user) return res.status(400).json({ message: "User not found." });
 
   if (user.role == "admin") {
     bcrypt.compare(req.body.password, user.password, (err, compareRes) => {
@@ -43,7 +43,7 @@ export const loginAdmin = async (req, res) => {
       }
     });
   } else {
-    return res.status(400).json({ msg: "User doesn't has admin role." });
+    return res.status(200).json({ message: "User doesn't has admin role." });
   }
 };
 
@@ -90,7 +90,7 @@ export const login = async (req, res) => {
               });
             } else {
               // password doesnt match
-              res.status(401).json({ message: "invalid credentials" });
+              res.status(401).json({ message: "Incorrect email or password." });
             }
           }
         );
