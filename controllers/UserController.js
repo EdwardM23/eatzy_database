@@ -112,21 +112,23 @@ export const register = async (req, res) => {
   if (user) {
     return res.status(400).json({ message: "Email already registered." });
   } else if (req.body.email && req.body.password) {
+    const API_KEY = "at_Mwrcge2qm511YxQ4Q52LnBFJEIFye";
+    axios.defaults.headers.common["accept-encoding"] = null;
     const options = {
       method: "GET",
       url:
-        "https://email-verifier-completely-free.p.rapidapi.com/email-verification/" +
+        "https://emailverification.whoisxmlapi.com/api/v2?apiKey=" +
+        API_KEY +
+        "&emailAddress=" +
         req.body.email,
-      headers: {
-        "X-RapidAPI-Key": "89ae0ba075msh93d54cb9e983b9bp105311jsn380db6706bb4",
-        "X-RapidAPI-Host": "email-verifier-completely-free.p.rapidapi.com",
-      },
     };
-
     try {
       const checkEmail = await axios.request(options);
-      console.log(checkEmail.data.response.email_status);
-      if (checkEmail.data.response.email_status == "No") {
+      if (
+        checkEmail.data.smtpCheck == "false" ||
+        checkEmail.data.dnsCheck == "false" ||
+        checkEmail.data.disposableCheck == "true"
+      ) {
         return res.status(400).json({ message: "Email doesn't exist." });
       }
     } catch (error) {
