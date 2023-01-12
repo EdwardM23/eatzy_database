@@ -10,7 +10,7 @@ import axios from "axios";
 export const loginAdmin = async (req, res) => {
   if (!req.body.email || !req.body.password) {
     return res
-      .status(400)
+      .status(200)
       .json({ message: "Email and Password cannot be empty." });
   }
 
@@ -20,15 +20,15 @@ export const loginAdmin = async (req, res) => {
     },
   });
 
-  if (!user) return res.status(400).json({ message: "User not found." });
+  if (!user) return res.status(200).json({ message: "User not found." });
 
   if (user.role == "admin") {
     bcrypt.compare(req.body.password, user.password, (err, compareRes) => {
       if (err) {
         // error while comparing
-        res
-          .status(502)
-          .json({ message: "Error while checking user password." });
+        res.status(200).json({
+          message: "Server Error: Error while checking user password.",
+        });
       } else if (compareRes) {
         // password match
         res.status(200).json({
@@ -39,7 +39,7 @@ export const loginAdmin = async (req, res) => {
         });
       } else {
         // password doesnt match
-        res.status(401).json({ message: "Invalid credentials" });
+        res.status(200).json({ message: "Invalid credentials" });
       }
     });
   } else {
