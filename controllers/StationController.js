@@ -50,7 +50,7 @@ export const addStation = async (req, res) => {
           restaurantList[i].dataValues.location.coordinates[0]
         );
         console.log("distance1:", distance1);
-        if (distance1 <= 1) {
+        if (distance1 <= 3) {
           const URL =
             "https://api.radar.io/v1/route/distance?origin=" +
             req.body.latitude +
@@ -67,7 +67,7 @@ export const addStation = async (req, res) => {
                 "walk distance:",
                 response.data.routes.foot.distance.value
               );
-              if (response.data.routes.foot.distance.value <= 1000) {
+              if (response.data.routes.foot.distance.value <= 3000) {
                 try {
                   RestaurantDetail.create({
                     restaurantId: restaurantList[i].dataValues.id,

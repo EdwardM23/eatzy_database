@@ -170,7 +170,7 @@ export const addRestaurant = async (req, res) => {
         req.body.longitude,
         stationList[i].dataValues.location.coordinates[0]
       );
-      if (distance1 <= 1) {
+      if (distance1 <= 3) {
         const URL =
           "https://api.radar.io/v1/route/distance?origin=" +
           req.body.latitude +
@@ -183,7 +183,7 @@ export const addRestaurant = async (req, res) => {
           "&modes=foot&units=metric";
         try {
           await axios.get(URL).then((response) => {
-            if (response.data.routes.foot.distance.value <= 1000) {
+            if (response.data.routes.foot.distance.value <= 3000) {
               try {
                 RestaurantDetail.create({
                   restaurantId: restaurantId,
