@@ -39,7 +39,7 @@ export const loginAdmin = async (req, res) => {
         });
       } else {
         // password doesnt match
-        res.status(200).json({ message: "Invalid credentials" });
+        res.status(200).json({ message: "Incorrect email or password." });
       }
     });
   } else {
