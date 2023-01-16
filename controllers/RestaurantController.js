@@ -170,7 +170,7 @@ export const addRestaurant = async (req, res) => {
         req.body.longitude,
         stationList[i].dataValues.location.coordinates[0]
       );
-      if (distance1 <= 3) {
+      if (distance1 <= 4.1) {
         const URL =
           "https://api.radar.io/v1/route/distance?origin=" +
           req.body.latitude +
@@ -183,7 +183,7 @@ export const addRestaurant = async (req, res) => {
           "&modes=foot&units=metric";
         try {
           await axios.get(URL).then((response) => {
-            if (response.data.routes.foot.distance.value <= 3000) {
+            if (response.data.routes.foot.distance.value <= 4100) {
               try {
                 RestaurantDetail.create({
                   restaurantId: restaurantId,
@@ -218,10 +218,7 @@ export const getNearestRestaurant = async (req, res) => {
   try {
     var restaurantList = [];
     var filterRestId = [];
-    console.log("CATEGORIES:", req.body.categories);
-    console.log("NULL:", req.body.categories == null);
     if (req.body.categories) {
-      console.log("LENGTH:", req.body.categories.length);
       if (req.body.categories.length) {
         resCond =
           "WHERE `category_detail`.`categoryId` IN (" +

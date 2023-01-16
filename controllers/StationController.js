@@ -37,10 +37,8 @@ export const addStation = async (req, res) => {
     axios.defaults.headers.common["Authorization"] =
       "prj_test_sk_f6c1041c0d4f9b99a04d93ecc7d94cb757620593";
     axios.defaults.headers.common["accept-encoding"] = null;
-    console.log("test");
     try {
       const restaurantList = await Restaurant.findAll();
-      console.log(restaurantList);
       for (var i = 0; i < restaurantList.length; i++) {
         // CHECK DISTANCE BY LONG LAT
         const distance1 = getLongLatDistance(
@@ -49,8 +47,7 @@ export const addStation = async (req, res) => {
           req.body.longitude,
           restaurantList[i].dataValues.location.coordinates[0]
         );
-        console.log("distance1:", distance1);
-        if (distance1 <= 3) {
+        if (distance1 <= 4.1) {
           const URL =
             "https://api.radar.io/v1/route/distance?origin=" +
             req.body.latitude +
@@ -63,11 +60,7 @@ export const addStation = async (req, res) => {
             "&modes=foot&units=metric";
           try {
             await axios.get(URL).then((response) => {
-              console.log(
-                "walk distance:",
-                response.data.routes.foot.distance.value
-              );
-              if (response.data.routes.foot.distance.value <= 3000) {
+              if (response.data.routes.foot.distance.value <= 4100) {
                 try {
                   RestaurantDetail.create({
                     restaurantId: restaurantList[i].dataValues.id,
